@@ -1,0 +1,25 @@
+{
+  "name": "frameworkfrontend",
+  "version": "1.0.0",
+  "description": "Welcome to the Vacso Framework, an open-source project designed to streamline the development of enterprise React web applications. Brought to you by Vacso, this framework is a comprehensive solution for both front-end and back-end development, allowing you to focus on crafting your unique data model and business rules.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "interweave": "^13.1.0",
+    "jwt-decode": "^4.0.0",
+    "primeflex": "^3.3.1",
+    "primeicons": "^7.0.0",
+    "primereact": "^10.6.3",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router": "^6.23.0",
+    "react-router-dom": "^6.23.0",
+    "zustand": "^4.5.2"
+  }
+}

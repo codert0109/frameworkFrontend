@@ -1,0 +1,10 @@
+.p-datatable .p-datatable-tbody > tr > td {
+  vertical-align: top;
+  padding: 8px;
+}
+
+.p-datatable .p-datatable-tbody > tr > td > pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

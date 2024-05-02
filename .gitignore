@@ -1,0 +1,13 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.eslintcache
+*.sqlite
+core.sqlite
+./core.sqlite
+/test-results/
+/playwright-report/
+/playwright/.cache/
+.history

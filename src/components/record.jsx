@@ -60,7 +60,7 @@ export default function Record({
 
     const fetchSchema = async () => {
       const response = await api.fetchCached(
-        `/api/db/${db}/${table}/getSchema`
+        `/api/db/${db}/${table}/schemaGet`
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -71,7 +71,7 @@ export default function Record({
 
     const fetchRecord = async () => {
       const response = await api.fetch(
-        `/api/db/${db}/${table}/getRecord/${recordId}`
+        `/api/db/${db}/${table}/recordGet/${recordId}`
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -126,7 +126,7 @@ export default function Record({
         if (settings.join && !done[columnId]) {
           try {
             const response = await api.fetchCached(
-              `/api/db/${settings.joinDb}/${settings.join}/getRows`
+              `/api/db/${settings.joinDb}/${settings.join}/rowsGet`
             );
 
             if (!response.ok) {
@@ -180,7 +180,7 @@ export default function Record({
 
     try {
       const response = await api.fetch(
-        `/api/db/${db}/${table}/deleteRecord/${recordId}`
+        `/api/db/${db}/${table}/recordDelete/${recordId}`
       );
 
       if (!response.ok) {
@@ -215,9 +215,9 @@ export default function Record({
     });
 
     try {
-      let action = 'createRecord';
+      let action = 'recordCreate';
       if (!newRecord) {
-        action = `updateRecord/${recordId}`;
+        action = `recordUpdate/${recordId}`;
       }
 
       const response = await api.fetch(`/api/db/${db}/${table}/${action}`, {
@@ -232,9 +232,9 @@ export default function Record({
         onClose();
       }
 
-      if (action === 'createRecord' && !closeOnCreate) {
+      if (action === 'recordCreate' && !closeOnCreate) {
         navigate(`/${db}/${table}/${response.data.id}`);
-      } else if (action === 'createRecord' && !closeOnCreate) {
+      } else if (action === 'recordCreate' && !closeOnCreate) {
         if (onClose) {
           onClose();
         }

@@ -64,7 +64,7 @@ export default function DataTableExtended({
       setError(null);
       //try {
       const response = await api.fetchCached(
-        `/api/db/${db}/${table}/getSchema`
+        `/api/db/${db}/${table}/schemaGet`
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -136,7 +136,7 @@ export default function DataTableExtended({
       }
 
       try {
-        const response = await api.fetch(`/api/db/${db}/${table}/getRows`, {
+        const response = await api.fetch(`/api/db/${db}/${table}/rowsGet`, {
           where: tempWhere,
           sortField: lazyState.sortField,
           sortOrder: lazyState.sortOrder > 0 ? 'DESC' : 'ASC',

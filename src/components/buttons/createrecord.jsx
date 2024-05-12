@@ -45,6 +45,3 @@ export default function AddRecordButton({
     </>
   );
 }
-
-//export default AddRecordButton;
-//

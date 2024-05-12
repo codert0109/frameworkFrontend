@@ -1,5 +1,11 @@
 import * as React from 'react';
-import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  useParams,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import useUserStore from '../stores/user.js';
 
 function useQuery() {
@@ -8,7 +14,7 @@ function useQuery() {
 
 export default function Token() {
   const setToken = useUserStore((state) => state.setToken);
-  //const { token } = useParams();
+
   const navigate = useNavigate();
   const query = useQuery();
   const token = query.get('token');
@@ -21,9 +27,7 @@ export default function Token() {
     } else {
       setError('No token received');
     }
-  }
-  , []);
+  }, []);
 
   return <>{error}</>;
-   
 }

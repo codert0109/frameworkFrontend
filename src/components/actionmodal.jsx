@@ -4,6 +4,7 @@ import Form from './form.jsx';
 import API from '../lib/api.js';
 import useUserStore from '../stores/user.js';
 import { useNavigate } from 'react-router-dom';
+import { unFormatDateTime } from './util.js';
 
 const api = new API();
 
@@ -42,12 +43,11 @@ export default function ActionModal({
   };
 
   const onSubmit = async (formData) => {
-    
     for (const column in columns) {
       if (columns[column].columnType == 'datetime') {
         // Convert the date to a timestamp
         if (recordFormData[column]) {
-          recordFormData[column] = new Date(recordFormData[column]).getTime();
+          recordFormData[column] = unFormatDateTime(recordFormData[column]);
         }
       }
     }

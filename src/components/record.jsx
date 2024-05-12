@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -7,12 +8,10 @@ import { Dropdown } from 'primereact/dropdown';
 import { Tooltip } from 'primereact/tooltip';
 
 import API from '../lib/api.js';
-import { useNavigate } from 'react-router-dom';
-import ConfirmButton from './buttons/confirmbutton.jsx';
+
 import ActionButton from './buttons/actionbutton.jsx';
 
 import { formatDateTime, unFormatDateTime } from './util.js';
-import { Interweave } from 'interweave';
 
 import './record.css';
 
@@ -152,7 +151,7 @@ export default function Record({
             temp[columnId] = settings.defaultValue;
           }
         }
-        //setFormData(temp);
+
         setFormData((formData) => ({ ...formData, ...temp }));
         console.log('new record sent!', temp);
         return;

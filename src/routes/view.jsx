@@ -5,6 +5,8 @@ import { Routes, Route, useParams } from 'react-router-dom';
 
 import * as Views from '../views/index.js';
 
+//TODO: finish implementing this component
+
 export default function View() {
   const { db, table, view, record } = useParams();
 

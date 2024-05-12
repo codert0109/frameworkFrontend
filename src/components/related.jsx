@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import API from '../lib/api.js';
+
 import { TabView, TabPanel } from 'primereact/tabview';
+
 import DataTable from './datatable.jsx';
 
 const api = new API();
@@ -11,8 +13,6 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
   console.log('Related', db, table, recordId, tables);
 
   useEffect(() => {
-    console.log('Related.useEffect', db, table, recordId);
-    //setTables([]);
     const fetchChildren = async () => {
       try {
         const response = await api.fetchCached(
@@ -53,7 +53,6 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
 
         setTables(tablesTemp);
       } catch (err) {
-        //setError(err.message);
         // nothing
       } finally {
         // nothing

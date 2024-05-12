@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+
 import CreateRecordButton from './buttons/createrecord.jsx';
-import Record from './record.jsx';
-import useUserStore from '../stores/user.js';
+
 import API from '../lib/api.js';
-import { useNavigate } from 'react-router-dom';
+
 import { formatDateTime } from './util.js';
-import { Interweave } from 'interweave';
+
 import './datatable.css';
 
 const api = new API();
@@ -223,7 +224,6 @@ export default function DataTableExtended({
         table={table}
         header={'Create ' + name}
         onClose={() => {
-          //setReload((prevReload) => prevReload + 1);
           forceReload();
         }}
         where={where}
@@ -254,9 +254,6 @@ export default function DataTableExtended({
         onSort={onLazyStateChange}
         onFilter={onLazyStateChange}
         totalRecords={rows}
-        // all of this is buggy/doesn't work in react prime. :(
-        //reorderIndicatorUpIcon="pi pi-sort-alpha-down"
-        //reorderIndicatorDownIcon={<>"pi pi-sort-alpha-down-alt"</>}
       >
         {Object.entries(columns)
           .sort(

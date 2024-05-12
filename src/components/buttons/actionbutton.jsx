@@ -11,6 +11,7 @@ export default function ActionButton({
   reload,
   forceReload,
   formData,
+  columns,
 }) {
   const [showModal, setShowModal] = useState(false);
 
@@ -38,6 +39,7 @@ export default function ActionButton({
         reload={reload}
         forceReload={forceReload}
         recordFormData={formData}
+        columns={columns}
       />
 
       <Button

@@ -17,6 +17,7 @@ export default function ActionModal({
   reload,
   forceReload,
   recordFormData,
+  columns,
   ...props
 }) {
   const toast = useUserStore((state) => state.toast);
@@ -41,6 +42,15 @@ export default function ActionModal({
   };
 
   const onSubmit = async (formData) => {
+    
+    for (const column in columns) {
+      if (columns[column].columnType == 'datetime') {
+        // Convert the date to a timestamp
+        if (recordFormData[column]) {
+          recordFormData[column] = new Date(recordFormData[column]).getTime();
+        }
+      }
+    }
     if (button.method) {
       const response = await api.fetch(
         `/api/db/${db}/${table}/${button.method}/${recordId}`,

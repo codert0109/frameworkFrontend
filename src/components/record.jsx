@@ -31,7 +31,6 @@ export default function Record({
   const [name, setName] = useState('');
   const [columns, setColumns] = useState({});
   const [loading, setLoading] = useState(true);
-  const [loadCount, setLoadCount] = useState(0); // Used to force a reload of the record data
   const [error, setError] = useState(null);
   const [dropdownOptions, setDropdownOptions] = useState({});
   const [formData, setFormData] = useState({});
@@ -172,38 +171,8 @@ export default function Record({
     });
   };
 
-  const handleDelete = async () => {
-    //if (event)
-    //event.preventDefault();
-
-    setError(null);
-
-    try {
-      const response = await api.fetch(
-        `/api/db/${db}/${table}/recordDelete/${recordId}`
-      );
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      if (onClose) {
-        onClose();
-      }
-
-      navigate(-1);
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Create or update the record
+  // Create a record
   const handleSubmit = async (params) => {
-    //event.preventDefault();
-
     setError(null);
 
     const postData = { ...formData };
@@ -215,34 +184,24 @@ export default function Record({
     });
 
     try {
-      let action = 'recordCreate';
-      if (!newRecord) {
-        action = `recordUpdate/${recordId}`;
-      }
-
-      const response = await api.fetch(`/api/db/${db}/${table}/${action}`, {
+      const response = await api.fetch(`/api/db/${db}/${table}/recordCreate`, {
         data: postData,
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok', response);
+        throw new Error('Server response was not ok', response);
       }
 
       if (onClose) {
         onClose();
       }
 
-      if (action === 'recordCreate' && !closeOnCreate) {
+      if (!closeOnCreate) {
         navigate(`/${db}/${table}/${response.data.id}`);
-      } else if (action === 'recordCreate' && !closeOnCreate) {
+      } else {
         if (onClose) {
           onClose();
         }
-      } else if (params.close) {
-        navigate(-1);
-        //navigate(`/${db}/${table}`);
-      } else {
-        forceReload();
       }
     } catch (err) {
       console.error(err);
@@ -284,7 +243,10 @@ export default function Record({
             onChange={(e) => {
               handleChange(columnId, e.value);
             }}
-            options={settings.options}
+            options={settings.options.map((item) => ({
+              label: item,
+              value: item,
+            }))}
             className="w-full md:w-14rem"
             size={settings.fieldWidth}
             key={columnId}
@@ -303,11 +265,6 @@ export default function Record({
             style={{ height: '100px' }}
           />
         );
-      /*case 'html':
-            return (
-              <Interweave content={formData[columnId]} />
-            );
-        */
       default:
         // 'text' or other types
         return (
@@ -323,7 +280,7 @@ export default function Record({
         );
     }
   };
-  //onSubmit={handleSubmit}>
+
   return (
     <>
       <h2>{newRecord ? '' : 'Update ' + name}</h2>
@@ -399,7 +356,6 @@ export default function Record({
                     if (onClose) {
                       onClose();
                     }
-                    navigate(-1);
                   }}
                 />
               </>
@@ -416,6 +372,7 @@ export default function Record({
                     forceReload={forceReload}
                     reload={reload}
                     formData={formData}
+                    columns={columns}
                   />
                 );
               })}

@@ -85,9 +85,18 @@ class API {
 
       // Success!
       console.log('Success! URL: ', url);
+      const data = await response.json();
+
+      if (data.messages) {
+        for (const message of data.messages) {
+          useUserStore.getState().toast(message); //
+        }
+      }
+
       return {
         ok: response.ok,
-        data: await response.json(),
+        data: data.data,
+        messages: data.messages,
       };
     }
   }

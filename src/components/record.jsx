@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
-import { Tooltip } from 'primereact/tooltip';
 
+import { Tooltip } from 'primereact/tooltip';
+import Fields from './fields/index.jsx';
 import API from '../lib/api.js';
 
 import ActionButton from './buttons/actionbutton.jsx';
@@ -217,67 +215,26 @@ export default function Record({
     if (settings.readOnly) {
       return <>{formData[columnId]}</>;
     }
+
     if (settings.join) {
-      // The field is a reference to another table
-      return (
-        <Dropdown
-          value={formData[columnId]}
-          onChange={(e) => {
-            handleChange(columnId, e.value);
-          }}
-          optionLabel={settings.friendlyColumnName}
-          optionValue="id"
-          options={dropdownOptions[columnId]}
-          className="w-full md:w-14rem"
-          size={settings.fieldWidth}
-          key={columnId}
-        />
-      );
+      settings.fieldType = 'reference';
     }
-    switch (settings.fieldType) {
-      case 'select':
-        return (
-          <Dropdown
-            value={formData[columnId]}
-            onChange={(e) => {
-              handleChange(columnId, e.value);
-            }}
-            options={settings.options.map((item) => ({
-              label: item,
-              value: item,
-            }))}
-            className="w-full md:w-14rem"
-            size={settings.fieldWidth}
-            key={columnId}
-          />
-        );
-      case 'textArea':
-      case 'html':
-        return (
-          <InputTextarea
-            id={columnId}
-            name={columnId}
-            placeholder={settings.helpText}
-            onChange={(e) => handleChange(columnId, e.target.value)}
-            value={formData[columnId]}
-            key={columnId}
-            style={{ height: '100px' }}
-          />
-        );
-      default:
-        // 'text' or other types
-        return (
-          <InputText
-            id={columnId}
-            name={columnId}
-            placeholder={settings.helpText}
-            onChange={(e) => handleChange(columnId, e.target.value)}
-            value={formData[columnId]}
-            size={settings.fieldWidth}
-            key={columnId}
-          />
-        );
+
+    if (!Fields[settings.fieldType]) {
+      settings.fieldType = 'inputtext';
     }
+
+    const Field = Fields[settings.fieldType];
+
+    return (
+      <Field
+        columnId={columnId}
+        settings={settings}
+        dropdownOptions={dropdownOptions}
+        formData={formData}
+        handleChange={handleChange}
+      />
+    );
   };
 
   return (
@@ -315,12 +272,14 @@ export default function Record({
               </label>
               <div className="col-12 md:col-10">
                 {renderInputField(columnId, settings)}
-                {settings.join && (
+                {settings.join && formData[columnId] && (
                   <i
                     className="ml-3 pi pi-external-link tooltip"
                     style={{ color: 'var(--primary-color)' }}
                     onClick={() => {
-                      navigate(`/${db}/${settings.join}/${formData[columnId]}`);
+                      navigate(
+                        `/${settings.joinDb}/${settings.join}/${formData[columnId]}`
+                      );
                     }}
                     data-pr-tooltip="View the related record"
                   ></i>

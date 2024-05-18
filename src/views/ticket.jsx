@@ -15,7 +15,7 @@ export default function Root() {
   const [selectedNodes, setSelectedNodes] = useState([]);
 
   useEffect(async () => {
-    const response = await api.fetch(`/api/db/${db}/${table}/counts`, {});
+    const response = await api.fetch(`/api/${db}/${table}/counts`, {});
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }

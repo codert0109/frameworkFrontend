@@ -25,7 +25,7 @@ export default function LoginModal({ children }) {
       if (!authenticated) {
         console.log('SSO Start');
         const response = await api.fetchCached(
-          '/api/saml/list',
+          '/api/core/saml/list',
           {},
           500 * 1000,
           false
@@ -49,9 +49,10 @@ export default function LoginModal({ children }) {
 
     try {
       const response = await api.fetch(
-        '/api/login',
+        '/api/core/login/getToken',
         { email, password },
-        false
+        false,
+        true
       );
 
       const data = response.data;
@@ -82,7 +83,7 @@ export default function LoginModal({ children }) {
         detail: 'Authentication Error',
         closable: true,
       });
-      console.error('There was an error logging in', error);
+      //console.error('There was an error logging in', error);
     }
   };
 

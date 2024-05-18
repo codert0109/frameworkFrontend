@@ -53,7 +53,7 @@ export default function ActionModal({
     }
     if (button.method) {
       const response = await api.fetch(
-        `/api/db/${db}/${table}/${button.method}/${recordId}`,
+        `/api/${db}/${table}/${button.method}/${recordId}`,
         { ...formData, data: recordFormData }
       );
     }

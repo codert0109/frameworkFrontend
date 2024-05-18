@@ -44,9 +44,7 @@ export default function Record({
 
   useEffect(() => {
     const fetchActions = async () => {
-      const response = await api.fetchCached(
-        `/api/db/${db}/${table}/getActions`
-      );
+      const response = await api.fetchCached(`/api/${db}/${table}/getActions`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -55,9 +53,7 @@ export default function Record({
     fetchActions();
 
     const fetchSchema = async () => {
-      const response = await api.fetchCached(
-        `/api/db/${db}/${table}/schemaGet`
-      );
+      const response = await api.fetchCached(`/api/${db}/${table}/schemaGet`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -67,7 +63,7 @@ export default function Record({
 
     const fetchRecord = async () => {
       const response = await api.fetch(
-        `/api/db/${db}/${table}/recordGet/${recordId}`
+        `/api/${db}/${table}/recordGet/${recordId}`
       );
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -122,7 +118,7 @@ export default function Record({
         if (settings.join && !done[columnId]) {
           try {
             const response = await api.fetchCached(
-              `/api/db/${settings.joinDb}/${settings.join}/rowsGet`
+              `/api/${settings.joinDb}/${settings.join}/rowsGet`
             );
 
             if (!response.ok) {
@@ -181,7 +177,7 @@ export default function Record({
     });
 
     try {
-      const response = await api.fetch(`/api/db/${db}/${table}/recordCreate`, {
+      const response = await api.fetch(`/api/${db}/${table}/recordCreate`, {
         data: postData,
       });
 

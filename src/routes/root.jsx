@@ -33,7 +33,7 @@ export default function Root() {
 
   useEffect(() => {
     (async () => {
-      const menuItems = await api.fetch('/api/menu/getMenuItems');
+      const menuItems = await api.fetch('/api/core/menu/getAllMenuItems');
       const items = buildMenu(menuItems.data, navigate);
       setNewItems(items);
     })();

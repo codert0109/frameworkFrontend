@@ -16,7 +16,7 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
     const fetchChildren = async () => {
       try {
         const response = await api.fetchCached(
-          `/api/db/${db}/${table}/getChildren`
+          `/api/${db}/${table}/getChildren`
         );
         if (!response.ok) {
           throw new Error('Network response was not ok');

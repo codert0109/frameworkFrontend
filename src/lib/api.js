@@ -26,7 +26,19 @@ class API {
     });
   }
 
-  async fetch(url, body = {}, auth = true) {
+  // JSDOC
+  /**
+   * Fetch data from the API
+   * @param {string} url - The URL to fetch data from
+   * @param {object} body - The body of the request
+   * @param {boolean} auth - Whether to wait for authentication
+   * @param {boolean} supressDialog - Whether to supress error dialogs
+   * @returns {Promise} - A promise that resolves to the fetched data
+   * @throws {Error} - Throws an error if the fetch fails
+   *
+   *
+   *  **/
+  async fetch(url, body = {}, auth = true, supressDialog = false) {
     console.log('Trying URL: ', url);
     while (true) {
       if (auth) {
@@ -76,7 +88,8 @@ class API {
 
         const json = await response.json();
         if (json.error) {
-          useUserStore.getState().setErrorMessage(json.error);
+          if (!supressDialog)
+            useUserStore.getState().setErrorMessage(json.error);
           throw new Error(json.error);
         }
 

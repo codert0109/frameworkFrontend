@@ -3,10 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
 
 import CreateRecordButton from './buttons/createrecord.jsx';
 
 import API from '../lib/api.js';
+import useBackend from '../lib/usebackend.js';
 
 import { formatDateTime } from './util.js';
 
@@ -23,6 +25,46 @@ const defaultLazyState = {
   filters: {},
 };
 
+// generate a where from the lazyState
+const generateLazyWhere = (filters, schema) => {
+  const tempWhere = [];
+
+  if (schema && schema.data && schema.data.schema) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (value.value) {
+        const columnName =
+          schema.data.schema[key].tableAlias +
+          '.' +
+          schema.data.schema[key].actualColumnName;
+        switch (value.matchMode) {
+          case 'startsWith':
+            tempWhere.push([columnName, 'like', `${value.value}%`]);
+            break;
+          case 'endsWith':
+            tempWhere.push([columnName, 'like', `%${value.value}`]);
+            break;
+          case 'contains':
+            tempWhere.push([columnName, 'like', `%${value.value}%`]);
+            break;
+          case 'notContains':
+            tempWhere.push([columnName, 'not like', `%${value.value}%`]);
+            break;
+          case 'equals':
+            tempWhere.push([columnName, '=', value.value]);
+            break;
+          case 'notEquals':
+            tempWhere.push([columnName, '!=', value.value]);
+            break;
+          default:
+            throw new Error('Unknown matchMode');
+        }
+      }
+    }
+  }
+
+  return tempWhere;
+};
+
 export default function DataTableExtended({
   db,
   table,
@@ -31,146 +73,55 @@ export default function DataTableExtended({
   reload,
   forceReload,
 }) {
-  const [name, setName] = useState('');
-  const [data, setData] = useState([]);
-  const [rows, setRows] = useState(0);
-  const [columns, setColumns] = useState({});
-  const [loading, setLoading] = useState({
-    data: true,
-    columns: true,
-  });
-  const [error, setError] = useState(null);
-  //const [reload, setReload] = useState(1);
-  const [lazyState, setlazyState] = useState({
-    offset: 0,
-    limit: 5,
-    page: 1,
-    sortField: 'id',
-    sortOrder: 1,
-    filters: {},
-  });
-  const [previousTable, setPreviousTable] = useState(table);
-
-  console.log('lazyState', lazyState);
-
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const allLoaded = Object.values(loading).every((v) => !v);
+  const [error, setError] = useState(null);
+  const [lazyState, setLazyState] = useState(defaultLazyState);
 
-  console.log('props', db, table, reload, where, location);
+  const schema = useBackend(db, table, 'schemaGet');
 
-  useEffect(() => {
-    const fetchSchema = async () => {
-      setError(null);
-      //try {
-      const response = await api.fetchCached(`/api/${db}/${table}/schemaGet`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      setName(response.data.name);
-      setColumns(response.data.schema);
-      setlazyState((prevLazyState) => ({
-        offset: 0,
-        limit: 5,
-        page: 1,
-        sortField: 'id',
-        sortOrder: 1,
-        filters: Object.keys(response.data.schema).reduce((acc, key) => {
-          acc[key] = { value: '', matchMode: 'contains' };
-          return acc;
-        }, {}),
-      }));
-      setLoading((prevLoading) => ({ ...prevLoading, columns: false }));
-    };
-    fetchSchema();
-  }, [db, table]);
+  const [rowsGetArgs, setRowGetArgs] = useState({
+    where: [...where, ...generateLazyWhere(lazyState, schema)],
+    sortField: lazyState.sortField,
+    sortOrder: lazyState.sortOrder > 0 ? 'DESC' : 'ASC',
+    limit: lazyState.limit,
+    offset: lazyState.offset,
+    returnCount: true,
+  });
+
+  const rows = useBackend(db, table, 'rowsGet', rowsGetArgs, reload);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (previousTable !== table) {
-        setPreviousTable(table);
-        setlazyState(defaultLazyState);
-        return;
-      }
-      const tempWhere = [...where];
+    setRowGetArgs((prevRowsGetArgs) => {
+      return {
+        ...prevRowsGetArgs,
+        where: [...where, ...generateLazyWhere(lazyState, schema)],
+      };
+    });
+  }, [where]);
 
-      if (
-        location?.state?.filter &&
-        Array.isArray(location?.state?.filter) &&
-        location.state.filter.length > 0
-      ) {
-        for (const filter of location.state.filter) {
-          tempWhere.push(filter);
-        }
-      }
-      console.log(columns);
-      for (const [key, value] of Object.entries(lazyState.filters)) {
-        if (value.value) {
-          const columnName =
-            columns[key].tableAlias + '.' + columns[key].actualColumnName;
-          switch (value.matchMode) {
-            case 'startsWith':
-              tempWhere.push([columnName, 'like', `${value.value}%`]);
-              break;
-            case 'endsWith':
-              tempWhere.push([columnName, 'like', `%${value.value}`]);
-              break;
-            case 'contains':
-              tempWhere.push([columnName, 'like', `%${value.value}%`]);
-              break;
-            case 'notContains':
-              tempWhere.push([columnName, 'not like', `%${value.value}%`]);
-              break;
-            case 'equals':
-              tempWhere.push([columnName, '=', value.value]);
-              break;
-            case 'notEquals':
-              tempWhere.push([columnName, '!=', value.value]);
-              break;
-            default:
-              throw new Error('Unknown matchMode');
-          }
-        }
-      }
+  useEffect(() => {
+    if (!schema) return;
+    setError(null);
 
-      try {
-        const response = await api.fetch(`/api/${db}/${table}/rowsGet`, {
-          where: tempWhere,
-          sortField: lazyState.sortField,
-          sortOrder: lazyState.sortOrder > 0 ? 'DESC' : 'ASC',
-          limit: lazyState.limit,
-          offset: lazyState.offset,
-          returnCount: true,
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        setData(response.data.rows);
-        setRows(response.data.count);
-        console.log('response', response.data);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        // nothing
-        setLoading((prevLoading) => ({ ...prevLoading, data: false }));
-      }
-    };
-
-    fetchData();
-  }, [db, table, reload, location, lazyState]);
+    setLazyState((prevLazyState) => ({
+      offset: 0,
+      limit: 5,
+      page: 1,
+      sortField: 'id',
+      sortOrder: 1,
+      filters: Object.keys(schema.data.schema).reduce((acc, key) => {
+        acc[key] = { value: '', matchMode: 'contains' };
+        return acc;
+      }, {}),
+    }));
+  }, [schema]);
 
   if (error)
     return (
       <>
         <p>Error loading data: {error}</p>
-      </>
-    );
-
-  if (!allLoaded)
-    return (
-      <>
-        <p>Loading...</p>
       </>
     );
 
@@ -198,7 +149,8 @@ export default function DataTableExtended({
   };
 
   const onLazyStateChange = (e) => {
-    setlazyState((prevLazyState) => {
+    // update the state for the datatable component
+    setLazyState((prevLazyState) => {
       return {
         ...prevLazyState,
         offset: e.first,
@@ -208,36 +160,58 @@ export default function DataTableExtended({
         filters: e.filters,
       };
     });
+
+    // update the state for the server call
+    setRowGetArgs((prevRowsGetArgs) => {
+      return {
+        ...prevRowsGetArgs,
+        offset: e.first,
+        limit: e.rows,
+        sortField: e.sortField,
+        sortOrder: e.sortOrder > 0 ? 'DESC' : 'ASC',
+        sortField: e.sortField,
+        returnCount: true,
+        where: [...where, ...generateLazyWhere(e.filters, schema)],
+      };
+    });
   };
 
   const header = (
     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
       <div>
         <span className="text-xl text-900 font-bold">
-          {location?.state?.tableHeader || name}
+          {location?.state?.tableHeader || schema?.data?.name}
         </span>
       </div>
-      <CreateRecordButton
-        db={db}
-        table={table}
-        header={'Create ' + name}
-        onClose={() => {
-          forceReload();
-        }}
-        where={where}
-        closeOnCreate={closeOnCreate}
-      />
+      <div>
+        <CreateRecordButton
+          db={db}
+          table={table}
+          header={'Create ' + schema?.data?.name}
+          onClose={() => {
+            forceReload();
+          }}
+          where={where}
+          closeOnCreate={closeOnCreate}
+        />
+        <Button
+          onClick={() => {
+            forceReload();
+          }}
+          className="mx-1"
+          icon="pi pi-refresh"
+        />
+      </div>
     </div>
   );
 
   return (
     <>
       <DataTable
-        value={data}
+        value={rows?.data?.rows || []}
         header={header}
         tableStyle={{ minWidth: '50rem' }}
         onRowClick={(e) => {
-          console.log(e.data);
           navigate(`/${db}/${table}/${e.data.id}`);
         }}
         lazy
@@ -251,9 +225,9 @@ export default function DataTableExtended({
         onPage={onLazyStateChange}
         onSort={onLazyStateChange}
         onFilter={onLazyStateChange}
-        totalRecords={rows}
+        totalRecords={rows?.data?.count || 0}
       >
-        {Object.entries(columns)
+        {Object.entries(schema?.data?.schema || {})
           .sort(
             ([, settingsA], [, settingsB]) => settingsA.order - settingsB.order
           )

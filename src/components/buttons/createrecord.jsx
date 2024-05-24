@@ -23,7 +23,7 @@ export default function AddRecordButton({
 
   return (
     <>
-      <Button icon="pi pi-plus" onClick={openDialog} />
+      <Button icon="pi pi-plus" className="mx-1" onClick={openDialog} />
 
       <Dialog
         header={header}

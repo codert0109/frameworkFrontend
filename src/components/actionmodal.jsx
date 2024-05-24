@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Dialog } from 'primereact/dialog';
 import Form from './form.jsx';
-import API from '../lib/api.js';
 import useUserStore from '../stores/user.js';
 import { useNavigate } from 'react-router-dom';
 import { unFormatDateTime } from './util.js';
-
-const api = new API();
+import { callBackend } from '../lib/usebackend.js';
+import { method } from 'lodash';
 
 export default function ActionModal({
   show,
@@ -52,10 +51,13 @@ export default function ActionModal({
       }
     }
     if (button.method) {
-      const response = await api.fetch(
-        `/api/${db}/${table}/${button.method}/${recordId}`,
-        { ...formData, data: recordFormData }
-      );
+      callBackend({
+        packageName: db,
+        className: table,
+        methodName: button.method,
+        recordId,
+        args: { ...formData, data: recordFormData },
+      });
     }
 
     await closeDialog();

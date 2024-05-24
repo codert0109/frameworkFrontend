@@ -24,7 +24,7 @@ export default function Root() {
       reload={reload}
       forceReload={forceReload}
       where={generateLocationWhere(location)}
-      key={`${db}.${table}`}
+      key={`${db}.${table}.${JSON.stringify(location?.state?.filter || {})}`}
     />
   );
 }

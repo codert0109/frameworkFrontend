@@ -1,10 +1,9 @@
 import { InputText } from 'primereact/inputtext';
 
-export default function InputText2({
+export default function DateTime({
   columnId,
   settings,
   dropdownOptions,
-
   value,
   handleChange,
 }) {

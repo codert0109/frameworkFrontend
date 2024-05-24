@@ -7,14 +7,11 @@ import { Button } from 'primereact/button';
 
 import CreateRecordButton from './buttons/createrecord.jsx';
 
-import API from '../lib/api.js';
-import useBackend from '../lib/usebackend.js';
+import { useBackend } from '../lib/usebackend.js';
 
 import { formatDateTime } from './util.js';
 
 import './datatable.css';
-
-const api = new API();
 
 const defaultLazyState = {
   offset: 0,
@@ -72,6 +69,7 @@ export default function DataTableExtended({
   where = [],
   reload,
   forceReload,
+  child = false, // is this a child table?
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,7 +77,12 @@ export default function DataTableExtended({
   const [error, setError] = useState(null);
   const [lazyState, setLazyState] = useState(defaultLazyState);
 
-  const schema = useBackend(db, table, 'schemaGet');
+  const schema = useBackend({
+    packageName: db,
+    className: table,
+    methodName: 'schemaGet',
+    cache: true,
+  });
 
   const [rowsGetArgs, setRowGetArgs] = useState({
     where: [...where, ...generateLazyWhere(lazyState, schema)],
@@ -90,7 +93,14 @@ export default function DataTableExtended({
     returnCount: true,
   });
 
-  const rows = useBackend(db, table, 'rowsGet', rowsGetArgs, reload);
+  const rows = useBackend({
+    packageName: db,
+    className: table,
+    methodName: 'rowsGet',
+
+    args: rowsGetArgs,
+    reload,
+  });
 
   useEffect(() => {
     setRowGetArgs((prevRowsGetArgs) => {
@@ -191,7 +201,7 @@ export default function DataTableExtended({
           onClose={() => {
             forceReload();
           }}
-          where={where}
+          where={child ? where : []} // we pass in the where clause if this is a child table so we can prefill the foreign keys
           closeOnCreate={closeOnCreate}
         />
         <Button

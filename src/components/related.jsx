@@ -1,73 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
-import API from '../lib/api.js';
+import { useBackend } from '../lib/usebackend.js';
 
 import { TabView, TabPanel } from 'primereact/tabview';
 
 import DataTable from './datatable.jsx';
 
-const api = new API();
-
 export default function Related({ db, table, recordId, reload, forceReload }) {
-  const [tables, setTables] = useState([]);
   const tabview = useRef(null);
-  console.log('Related', db, table, recordId, tables);
+  const tables = useBackend({
+    packageName: db,
+    className: table,
+    methodName: 'getChildren',
+    cache: true,
+    filter: (data) => prepTables(data),
+    reload,
+  });
 
-  useEffect(() => {
-    const fetchChildren = async () => {
-      try {
-        const response = await api.fetchCached(
-          `/api/${db}/${table}/getChildren`
-        );
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+  const prepTables = (response) => {
+    const tablesTemp = [...response.data]; // copy the cached response since we're going to modify it.
+
+    for (const childTable of tablesTemp) {
+      for (const [columna, columnb] of Object.entries(childTable.columnmap)) {
+        if (!childTable.where) {
+          childTable.where = [];
+        }
+        let right = '';
+        switch (columnb) {
+          case 'id':
+            right = recordId;
+            break;
+          case 'db':
+            right = db;
+            break;
+          case 'table':
+            right = table;
+            break;
+          default:
+            right = recordId;
+            break;
         }
 
-        const tablesTemp = [...response.data]; // copy the cached response since we're going to modify it.
-
-        for (const childTable of tablesTemp) {
-          for (const [columna, columnb] of Object.entries(
-            childTable.columnmap
-          )) {
-            if (!childTable.where) {
-              childTable.where = [];
-            }
-            let right = '';
-            switch (columnb) {
-              case 'id':
-                right = recordId;
-                break;
-              case 'db':
-                right = db;
-                break;
-              case 'table':
-                right = table;
-                break;
-              default:
-                right = recordId;
-                break;
-            }
-
-            childTable.where.push({ [columna]: right });
-          }
-        }
-
-        setTables(tablesTemp);
-      } catch (err) {
-        // nothing
-      } finally {
-        // nothing
+        childTable.where.push({ [columna]: right });
       }
-    };
+    }
 
-    fetchChildren();
-  }, [db, table, recordId, reload]);
+    return tablesTemp;
+  };
 
-  const tabs = '';
+  console.log('Related', db, table, recordId, tables);
 
   return (
     <>
       <TabView scrollable key={table + 'related'} ref={tabview}>
-        {tables.length > 0 &&
+        {tables &&
+          tables.length > 0 &&
           tables.map((childTable) => {
             return (
               <TabPanel
@@ -86,6 +72,7 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
                   reload={reload}
                   forceReload={forceReload}
                   key={table + childTable.tabName + childTable.table}
+                  child={true}
                 />
               </TabPanel>
             );

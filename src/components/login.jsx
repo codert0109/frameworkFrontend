@@ -5,11 +5,9 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Messages } from 'primereact/messages';
 import { Divider } from 'primereact/divider';
+import { callBackend } from '../lib/usebackend.js';
 
 import useUserStore from '../stores/user.js';
-import API from '../lib/api.js';
-
-const api = new API();
 
 export default function LoginModal({ children }) {
   const [email, setEmail] = useState('');
@@ -24,12 +22,13 @@ export default function LoginModal({ children }) {
     const fetchSSOList = async () => {
       if (!authenticated) {
         console.log('SSO Start');
-        const response = await api.fetchCached(
-          '/api/core/saml/list',
-          {},
-          500 * 1000,
-          false
-        );
+        const response = await callBackend({
+          packageName: 'core',
+          className: 'saml',
+          methodName: 'list',
+          cache: true,
+          auth: false,
+        });
         console.log('SSO List:', response.data);
         if (response.data.length > 0) {
           setSSOList(response.data);
@@ -48,12 +47,14 @@ export default function LoginModal({ children }) {
     console.log('Email:', email, 'Password:', password);
 
     try {
-      const response = await api.fetch(
-        '/api/core/login/getToken',
-        { email, password },
-        false,
-        true
-      );
+      const response = await callBackend({
+        packageName: 'core',
+        className: 'login',
+        methodName: 'getToken',
+        args: { email, password },
+        auth: false,
+        supressDialog: true,
+      });
 
       const data = response.data;
 

@@ -8,18 +8,18 @@ import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
 
+import { useBackend } from '../lib/usebackend.js';
+
 import { Dialog } from 'primereact/dialog';
 
 import Login from '../components/login.jsx';
-import API from '../lib/api.js';
 
-const api = new API();
 import useUserStore from '../stores/user.js';
 
 export default function Root() {
   const navigate = useNavigate();
   const userMenu = useRef(null);
-  const [newItems, setNewItems] = useState([]);
+  //const [newItems, setNewItems] = useState([]);
   const logout = useUserStore((state) => state.logout);
   const userId = useUserStore((state) => state.userId);
   const setToast = useUserStore((state) => state.setToast);
@@ -27,17 +27,19 @@ export default function Root() {
   const errorMessage = useUserStore((state) => state.errorMessage);
   const clearErrorMessage = useUserStore((state) => state.clearErrorMessage);
 
+  const newItems = useBackend({
+    packageName: 'core',
+    className: 'menu',
+    methodName: 'getAllMenuItems',
+    filter: (data) => buildMenu(data.data, navigate),
+    cache: true,
+  });
+
   const sendToast = (toastObject) => {
     toast.current.show(toastObject);
   };
 
   useEffect(() => {
-    (async () => {
-      const menuItems = await api.fetch('/api/core/menu/getAllMenuItems');
-      const items = buildMenu(menuItems.data, navigate);
-      setNewItems(items);
-    })();
-
     setToast(sendToast); // This works. Possibly a bad idea.
   }, []);
 

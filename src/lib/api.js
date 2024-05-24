@@ -38,8 +38,9 @@ class API {
    *
    *
    *  **/
+
   async fetch(url, body = {}, auth = true, supressDialog = false) {
-    console.log('Trying URL: ', url);
+    //console.log('Trying URL: ', url);
     while (true) {
       if (auth) {
         await this.waitForAuthentication();
@@ -97,7 +98,7 @@ class API {
       }
 
       // Success!
-      console.log('Success! URL: ', url);
+      //console.log('Success! URL: ', url);
       const data = await response.json();
 
       if (data.messages) {
@@ -137,7 +138,7 @@ class API {
   }
 
   async fetchCached(url, options = {}, ttl = 1000 * 60 * 60, auth = true) {
-    console.log('Trying cached URL: ', url);
+    //console.log('Trying cached URL: ', url);
 
     // Try to return cached data if available and valid
     const cachedData = this.getCached(url, ttl);

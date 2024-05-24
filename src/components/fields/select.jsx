@@ -4,12 +4,13 @@ export default function Select({
   columnId,
   settings,
   dropdownOptions,
-  formData,
+  value,
+  
   handleChange,
 }) {
   return (
     <Dropdown
-      value={formData[columnId]}
+      value={value}
       onChange={(e) => {
         handleChange(columnId, e.value);
       }}

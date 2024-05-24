@@ -4,7 +4,8 @@ export default function TextArea2({
   columnId,
   settings,
   dropdownOptions,
-  formData,
+
+  value,
   handleChange,
 }) {
   return (
@@ -13,7 +14,7 @@ export default function TextArea2({
       name={columnId}
       placeholder={settings.helpText}
       onChange={(e) => handleChange(columnId, e.target.value)}
-      value={formData[columnId]}
+      value={value}
       key={columnId}
       style={{ height: '100px' }}
     />

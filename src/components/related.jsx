@@ -10,7 +10,7 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
   const tables = useBackend({
     packageName: db,
     className: table,
-    methodName: 'getChildren',
+    methodName: 'childrenGet',
     cache: true,
     filter: (data) => prepTables(data),
     reload,

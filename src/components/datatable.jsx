@@ -210,6 +210,7 @@ export default function DataTableExtended({
           }}
           className="mx-1"
           icon="pi pi-refresh"
+          tooltip="Refresh data"
         />
       </div>
     </div>

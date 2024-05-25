@@ -11,6 +11,7 @@ import ActionButton from './buttons/actionbutton.jsx';
 import { formatDateTime, unFormatDateTime } from './util.js';
 
 import { useBackend, callBackend } from '../lib/usebackend.js';
+import CreateRecord from './buttons/createrecord.jsx';
 
 import './record.css';
 
@@ -84,37 +85,38 @@ export default function Record({
     }
   }, [record]);
 
+  const getDropDownOptions = async (columnId, settings) => {
+    if (settings.join) {
+      try {
+        const response = await callBackend({
+          packageName: settings.joinDb,
+          className: settings.join,
+          methodName: 'rowsGet',
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        response.data.rows.push({ id: null, name: 'None' });
+
+        setDropdownOptions((prevOptions) => ({
+          ...prevOptions,
+          [columnId]: response.data.rows,
+        }));
+      } catch (err) {
+        console.error('Error fetching dropdown options:', err);
+      }
+    }
+  };
+
   // Fetch the dropdown options for each dropdown field
   useEffect(() => {
     const fetchDropdownOptions = async () => {
-      const done = {}; // Sometimes the same join is used in multiple columns, so we only need to fetch it once
       for (const [columnId, settings] of Object.entries(
         schema?.data?.schema || {}
       )) {
-        if (settings.join && !done[columnId]) {
-          try {
-            const response = await callBackend({
-              packageName: settings.joinDb,
-              className: settings.join,
-              methodName: 'rowsGet',
-              cache: true,
-            });
-
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-
-            response.data.rows.push({ id: null, name: 'None' });
-
-            setDropdownOptions((prevOptions) => ({
-              ...prevOptions,
-              [columnId]: response.data.rows,
-            }));
-            done[columnId] = true;
-          } catch (err) {
-            console.error('Error fetching dropdown options:', err);
-          }
-        }
+        getDropDownOptions(columnId, settings);
       }
 
       if (newRecord && schema?.data?.schema?.id) {
@@ -170,7 +172,7 @@ export default function Record({
       }
 
       if (onClose) {
-        onClose();
+        onClose(response.data.id);
       }
 
       if (!closeOnCreate) {
@@ -256,17 +258,39 @@ export default function Record({
                 </label>
                 <div className="col-12 md:col-10">
                   {renderInputField(columnId, settings)}
-                  {settings.join && formData[columnId] && (
-                    <i
-                      className="ml-3 pi pi-external-link tooltip"
-                      style={{ color: 'var(--primary-color)' }}
-                      onClick={() => {
-                        navigate(
-                          `/${settings.joinDb}/${settings.join}/${formData[columnId]}`
-                        );
-                      }}
-                      data-pr-tooltip="View the related record"
-                    ></i>
+                  {
+                    //TODO move these into the reference field component
+                  }
+                  {settings.join && (
+                    <>
+                      {formData[columnId] && (
+                        <Button
+                          icon="pi pi-external-link"
+                          className="ml-1"
+                          onClick={() => {
+                            navigate(
+                              `/${settings.joinDb}/${settings.join}/${formData[columnId]}`
+                            );
+                          }}
+                          tooltip="View related record"
+                        />
+                      )}
+                      <CreateRecord
+                        db={settings.joinDb}
+                        table={settings.join}
+                        onClose={async (id) => {
+                          await getDropDownOptions(columnId, settings);
+                          if (id) {
+                            setFormData((formData) => ({
+                              ...formData,
+                              [columnId]: id,
+                            }));
+                          }
+                        }}
+                        closeOnCreate={true}
+                        header="Create Record"
+                      />
+                    </>
                   )}
                 </div>
               </div>

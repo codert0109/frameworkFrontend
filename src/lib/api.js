@@ -107,6 +107,10 @@ class API {
         }
       }
 
+      if (this.cache[url]) {
+        delete this.cache[url];
+      }
+
       return {
         ok: response.ok,
         data: data.data,

@@ -14,16 +14,21 @@ export default function AddRecordButton({
   const [showDialog, setShowDialog] = useState(false);
 
   const openDialog = () => setShowDialog(true);
-  const closeDialog = () => {
+  const closeDialog = (id) => {
     setShowDialog(false);
     if (onClose) {
-      onClose();
+      onClose(id);
     }
   };
 
   return (
     <>
-      <Button icon="pi pi-plus" className="mx-1" onClick={openDialog} />
+      <Button
+        icon="pi pi-plus"
+        className="mx-1"
+        onClick={openDialog}
+        tooltip="Create record"
+      />
 
       <Dialog
         header={header}
@@ -35,8 +40,8 @@ export default function AddRecordButton({
         <CreateRecord
           db={db}
           table={table}
-          onClose={() => {
-            closeDialog();
+          onClose={(id) => {
+            closeDialog(id);
           }}
           where={where}
           closeOnCreate={closeOnCreate}

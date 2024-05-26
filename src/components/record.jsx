@@ -92,6 +92,10 @@ export default function Record({
           packageName: settings.joinDb,
           className: settings.join,
           methodName: 'rowsGet',
+          args: {
+            columns: ['id', settings.friendlyColumnName],
+            queryModifier: settings.queryModifier,
+          },
         });
 
         if (!response.ok) {
@@ -213,7 +217,7 @@ export default function Record({
       <Field
         columnId={columnId}
         settings={settings}
-        dropdownOptions={dropdownOptions}
+        dropdownOptions={dropdownOptions ? dropdownOptions[columnId] : []}
         value={value}
         handleChange={handleChange}
       />
@@ -273,23 +277,26 @@ export default function Record({
                             );
                           }}
                           tooltip="View related record"
+                          key="viewRelatedRecord"
                         />
                       )}
-                      <CreateRecord
-                        db={settings.joinDb}
-                        table={settings.join}
-                        onClose={async (id) => {
-                          await getDropDownOptions(columnId, settings);
-                          if (id) {
-                            setFormData((formData) => ({
-                              ...formData,
-                              [columnId]: id,
-                            }));
-                          }
-                        }}
-                        closeOnCreate={true}
-                        header="Create Record"
-                      />
+                      {settings.referenceCreate && (
+                        <CreateRecord
+                          db={settings.joinDb}
+                          table={settings.join}
+                          onClose={async (id) => {
+                            await getDropDownOptions(columnId, settings);
+                            if (id) {
+                              setFormData((formData) => ({
+                                ...formData,
+                                [columnId]: id,
+                              }));
+                            }
+                          }}
+                          closeOnCreate={true}
+                          header="Create Record"
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -333,7 +340,7 @@ export default function Record({
                 return (
                   <ActionButton
                     button={button}
-                    key={button.label}
+                    key={button.id}
                     db={db}
                     table={table}
                     recordId={recordId}

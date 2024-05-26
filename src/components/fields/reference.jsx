@@ -4,10 +4,14 @@ export default function Reference({
   columnId,
   settings,
   dropdownOptions,
-
   value,
   handleChange,
 }) {
+  let filter = false;
+  if (dropdownOptions && dropdownOptions.length > 10) {
+    filter = true;
+  }
+
   return (
     <>
       <Dropdown
@@ -17,10 +21,11 @@ export default function Reference({
         }}
         optionLabel={settings.friendlyColumnName}
         optionValue="id"
-        options={dropdownOptions[columnId]}
+        options={dropdownOptions}
         className="w-full md:w-14rem"
         size={settings.fieldWidth}
         key={columnId}
+        filter={filter}
       />
     </>
   );

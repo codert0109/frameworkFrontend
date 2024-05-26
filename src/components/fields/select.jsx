@@ -5,7 +5,6 @@ export default function Select({
   settings,
   dropdownOptions,
   value,
-  
   handleChange,
 }) {
   return (

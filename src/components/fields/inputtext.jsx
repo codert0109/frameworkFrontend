@@ -14,7 +14,7 @@ export default function InputText2({
       name={columnId}
       placeholder={settings.helpText}
       onChange={(e) => handleChange(columnId, e.target.value)}
-      value={value}
+      value={value || ''}
       size={settings.fieldWidth}
       key={columnId}
     />

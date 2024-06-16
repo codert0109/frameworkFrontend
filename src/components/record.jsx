@@ -85,44 +85,9 @@ export default function Record({
     }
   }, [record]);
 
-  const getDropDownOptions = async (columnId, settings) => {
-    if (settings.join) {
-      try {
-        const response = await callBackend({
-          packageName: settings.joinDb,
-          className: settings.join,
-          methodName: 'rowsGet',
-          args: {
-            columns: ['id', settings.friendlyColumnName],
-            queryModifier: settings.queryModifier,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        response.data.rows.push({ id: null, name: 'None' });
-
-        setDropdownOptions((prevOptions) => ({
-          ...prevOptions,
-          [columnId]: response.data.rows,
-        }));
-      } catch (err) {
-        console.error('Error fetching dropdown options:', err);
-      }
-    }
-  };
-
   // Fetch the dropdown options for each dropdown field
   useEffect(() => {
     const fetchDropdownOptions = async () => {
-      for (const [columnId, settings] of Object.entries(
-        schema?.data?.schema || {}
-      )) {
-        getDropDownOptions(columnId, settings);
-      }
-
       if (newRecord && schema?.data?.schema?.id) {
         const temp = {};
         for (const [columnId, settings] of Object.entries(schema.data.schema)) {
@@ -197,27 +162,27 @@ export default function Record({
   if (error) return <p>Error: {error}</p>;
 
   const renderInputField = (columnId, settings) => {
-    if (settings.join) {
-      settings.fieldType = 'reference';
-    }
-
-    if (!Fields[settings.fieldType]) {
-      settings.fieldType = 'inputtext';
-    }
+    let Field = Fields.string.edit;
 
     if (settings.readOnly) {
-      settings.fieldType = 'readOnly';
+      if (Fields[settings.fieldType]?.read) {
+        Field = Fields[settings.fieldType].read;
+      } else {
+        Field = Fields.string.read;
+      }
+    } else if (settings.join) {
+      // TODO the fields should have a fieldType of reference already.
+      Field = Fields.reference.edit;
+    } else if (Fields[settings.fieldType]?.edit) {
+      Field = Fields[settings.fieldType].edit;
     }
 
     let value = formData[columnId];
-
-    const Field = Fields[settings.fieldType];
 
     return (
       <Field
         columnId={columnId}
         settings={settings}
-        dropdownOptions={dropdownOptions ? dropdownOptions[columnId] : []}
         value={value}
         handleChange={handleChange}
       />
@@ -262,43 +227,6 @@ export default function Record({
                 </label>
                 <div className="col-12 md:col-10">
                   {renderInputField(columnId, settings)}
-                  {
-                    //TODO move these into the reference field component
-                  }
-                  {settings.join && (
-                    <>
-                      {formData[columnId] && (
-                        <Button
-                          icon="pi pi-external-link"
-                          className="ml-1"
-                          onClick={() => {
-                            navigate(
-                              `/${settings.joinDb}/${settings.join}/${formData[columnId]}`
-                            );
-                          }}
-                          tooltip="View related record"
-                          key="viewRelatedRecord"
-                        />
-                      )}
-                      {settings.referenceCreate && (
-                        <CreateRecord
-                          db={settings.joinDb}
-                          table={settings.join}
-                          onClose={async (id) => {
-                            await getDropDownOptions(columnId, settings);
-                            if (id) {
-                              setFormData((formData) => ({
-                                ...formData,
-                                [columnId]: id,
-                              }));
-                            }
-                          }}
-                          closeOnCreate={true}
-                          header="Create Record"
-                        />
-                      )}
-                    </>
-                  )}
                 </div>
               </div>
             );

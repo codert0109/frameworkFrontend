@@ -1,6 +1,4 @@
-import { InputTextarea } from 'primereact/inputtextarea';
-
-export default function TextArea2({
+export function edit({
   columnId,
   settings,
   dropdownOptions,
@@ -9,14 +7,25 @@ export default function TextArea2({
   handleChange,
 }) {
   return (
-    <InputTextarea
+    <InputText
       id={columnId}
       name={columnId}
       placeholder={settings.helpText}
       onChange={(e) => handleChange(columnId, e.target.value)}
-      value={value}
+      value={value || ''}
+      size={settings.fieldWidth}
       key={columnId}
-      style={{ height: '100px' }}
     />
   );
 }
+
+export function read({ value }) {
+  return value;
+}
+
+export function filter() {
+  return null;
+}
+
+filter.showFilterMenu = true;
+filter.showClearButton = true;

@@ -1,6 +1,6 @@
 import { Dropdown } from 'primereact/dropdown';
 
-export default function Select({
+export function edit({
   columnId,
   settings,
   dropdownOptions,

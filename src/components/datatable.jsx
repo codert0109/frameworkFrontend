@@ -9,13 +9,13 @@ import CreateRecordButton from './buttons/createrecord.jsx';
 
 import { useBackend } from '../lib/usebackend.js';
 
-import { formatDateTime } from './util.js';
+import fields from './fields';
 
 import './datatable.css';
 
 const defaultLazyState = {
   offset: 0,
-  limit: 5,
+  limit: 10,
   page: 1,
   sortField: 'id',
   sortOrder: 1,
@@ -28,7 +28,11 @@ const generateLazyWhere = (filters, schema) => {
 
   if (schema && schema.data && schema.data.schema) {
     for (const [key, value] of Object.entries(filters)) {
-      if (value.value) {
+      if (
+        value.value !== undefined &&
+        value.value !== '' &&
+        value.value !== null
+      ) {
         const columnName =
           schema.data.schema[key].tableAlias +
           '.' +
@@ -74,7 +78,6 @@ export default function DataTableExtended({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [error, setError] = useState(null);
   const [lazyState, setLazyState] = useState(defaultLazyState);
 
   const schema = useBackend({
@@ -85,7 +88,7 @@ export default function DataTableExtended({
   });
 
   const [rowsGetArgs, setRowGetArgs] = useState({
-    where: [...where, ...generateLazyWhere(lazyState, schema)],
+    where: [...where, ...generateLazyWhere(lazyState.filters, schema)],
     sortField: lazyState.sortField,
     sortOrder: lazyState.sortOrder > 0 ? 'DESC' : 'ASC',
     limit: lazyState.limit,
@@ -97,7 +100,6 @@ export default function DataTableExtended({
     packageName: db,
     className: table,
     methodName: 'rowsGet',
-
     args: rowsGetArgs,
     reload,
   });
@@ -106,21 +108,16 @@ export default function DataTableExtended({
     setRowGetArgs((prevRowsGetArgs) => {
       return {
         ...prevRowsGetArgs,
-        where: [...where, ...generateLazyWhere(lazyState, schema)],
+        where: [...where, ...generateLazyWhere(lazyState.filters, schema)],
       };
     });
   }, [where]);
 
   useEffect(() => {
     if (!schema) return;
-    setError(null);
 
     setLazyState((prevLazyState) => ({
-      offset: 0,
-      limit: 5,
-      page: 1,
-      sortField: 'id',
-      sortOrder: 1,
+      ...prevLazyState,
       filters: Object.keys(schema.data.schema).reduce((acc, key) => {
         acc[key] = { value: '', matchMode: 'contains' };
         return acc;
@@ -128,35 +125,20 @@ export default function DataTableExtended({
     }));
   }, [schema]);
 
-  if (error)
-    return (
-      <>
-        <p>Error loading data: {error}</p>
-      </>
-    );
-
-  const bodyTemplate = (data, props) => {
-    const columnValue = data[props.field];
-    if (props.columnType === 'datetime') {
-      return (
-        <div style={{ whiteSpace: 'nowrap' }}>
-          {formatDateTime(columnValue)}
-        </div>
-      );
-    }
-    if (props.fieldType === 'textArea') {
-      return <div style={{ whiteSpace: 'pre-wrap' }}>{columnValue}</div>;
-    }
-    if (props.listStyle == 'nowrap') {
-      return <div style={{ whiteSpace: 'nowrap' }}>{columnValue}</div>;
-    }
-
-    if (props.fieldType === 'html') {
-      return <pre>{columnValue}</pre>;
-    }
-
-    return <>{columnValue}</>;
-  };
+  useEffect(() => {
+    // update the state for the server call
+    setRowGetArgs((prevRowsGetArgs) => {
+      return {
+        ...prevRowsGetArgs,
+        offset: lazyState.offset,
+        limit: lazyState.limit,
+        sortField: lazyState.sortField,
+        sortOrder: lazyState.sortOrder > 0 ? 'DESC' : 'ASC',
+        returnCount: true,
+        where: [...where, ...generateLazyWhere(lazyState.filters, schema)],
+      };
+    });
+  }, [lazyState]);
 
   const onLazyStateChange = (e) => {
     // update the state for the datatable component
@@ -170,18 +152,19 @@ export default function DataTableExtended({
         filters: e.filters,
       };
     });
+  };
 
-    // update the state for the server call
-    setRowGetArgs((prevRowsGetArgs) => {
+  const onFilterElementChange = (columnId, value, matchMode) => {
+    setLazyState((prevLazyState) => {
       return {
-        ...prevRowsGetArgs,
-        offset: e.first,
-        limit: e.rows,
-        sortField: e.sortField,
-        sortOrder: e.sortOrder > 0 ? 'DESC' : 'ASC',
-        sortField: e.sortField,
-        returnCount: true,
-        where: [...where, ...generateLazyWhere(e.filters, schema)],
+        ...prevLazyState,
+        filters: {
+          ...prevLazyState.filters,
+          [columnId]: {
+            value,
+            matchMode,
+          },
+        },
       };
     });
   };
@@ -247,21 +230,40 @@ export default function DataTableExtended({
             if (settings.hidden) return;
             if (settings.hiddenList) return;
 
-            const bodyProps = {
-              body: (data) =>
-                bodyTemplate(data, { ...settings, field: columnId }),
+            const columnProps = {
+              filter: true,
+              sortable: true,
+              header: settings.friendlyName,
             };
 
-            return (
-              <Column
-                key={columnId}
-                field={columnId}
-                header={settings.friendlyName}
-                {...bodyProps}
-                sortable
-                filter
-              />
-            );
+            // filter
+            if (fields[settings.fieldType]?.filter) {
+              const Filter = fields[settings.fieldType]?.filter;
+              columnProps.filterElement = (
+                <Filter
+                  value={lazyState.filters[columnId]?.value || ''}
+                  onFilterElementChange={onFilterElementChange}
+                  columnId={columnId}
+                />
+              );
+
+              if (Filter.showFilterMenu !== undefined) {
+                columnProps.showFilterMenu = Filter.showFilterMenu;
+              }
+
+              if (Filter.showClearButton !== undefined) {
+                columnProps.showClearButton = Filter.showClearButton;
+              }
+            }
+
+            // read
+            if (fields[settings.fieldType]?.read) {
+              const Read = fields[settings.fieldType].read;
+              columnProps.body = (data) =>
+                Read({ value: data[columnId], settings });
+            }
+
+            return <Column key={columnId} field={columnId} {...columnProps} />;
           })}
       </DataTable>
     </>

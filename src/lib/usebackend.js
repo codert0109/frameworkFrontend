@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import API from './api.js';
-import { _ } from 'lodash';
+import { isEqual } from 'lodash';
 
 const api = new API();
 let render = 0;
@@ -63,7 +63,7 @@ export function useBackend({
   }, [clear]);
 
   // This prevents duplicate calls when just a reference changes.
-  if (!_.isEqual(newArgs, args)) {
+  if (!isEqual(newArgs, args)) {
     setNewArgs(args);
   }
 

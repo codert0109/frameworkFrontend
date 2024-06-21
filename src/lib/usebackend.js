@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import API from './api.js';
-import _ from 'lodash';
+import { _ } from 'lodash';
 
 const api = new API();
 let render = 0;

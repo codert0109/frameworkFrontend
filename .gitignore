@@ -11,3 +11,4 @@ core.sqlite
 /playwright-report/
 /playwright/.cache/
 .history
+g/backend/coverage

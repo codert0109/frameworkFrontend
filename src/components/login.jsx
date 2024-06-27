@@ -13,6 +13,9 @@ export default function LoginModal({ children }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [ssoList, setSSOList] = useState(null);
+
+  const toast = useUserStore((state) => state.toast);
+
   const setToken = useUserStore((state) => state.setToken);
   const authenticated = useUserStore((state) => state.authenticated);
 
@@ -61,8 +64,22 @@ export default function LoginModal({ children }) {
       if (data && data.token) {
         setToken(data.token);
 
+        toast({
+          severity: 'success',
+          summary: 'Success',
+          detail: `Login successful`,
+          life: 3000,
+        });
+
         console.log('Login successful!');
       } else {
+        toast({
+          severity: 'error',
+          summary: 'Failed',
+          detail: `Login failed`,
+          life: 3000,
+        });
+        /*
         msgs.current.getElement().hidden = false;
         msgs.current.replace({
           id: '1',
@@ -71,10 +88,17 @@ export default function LoginModal({ children }) {
           summary: 'Error',
           detail: 'Authentication Failed',
           closable: true,
-        });
+        });*/
         console.log('No token received');
       }
     } catch (error) {
+      toast({
+        severity: 'error',
+        summary: 'Failed',
+        detail: `Login failed`,
+        life: 3000,
+      });
+      /*
       msgs.current.getElement().hidden = false;
       msgs.current.replace({
         id: '1',
@@ -84,6 +108,7 @@ export default function LoginModal({ children }) {
         detail: 'Authentication Error',
         closable: true,
       });
+      */
       //console.error('There was an error logging in', error);
     }
   };

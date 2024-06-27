@@ -60,6 +60,7 @@ export function edit({ columnId, settings, value, handleChange, ...props }) {
   return (
     <>
       <Dropdown
+        id={columnId}
         value={value}
         onChange={(e) => {
           handleChange(columnId, e.value);

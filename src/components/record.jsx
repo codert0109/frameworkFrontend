@@ -13,6 +13,8 @@ import { formatDateTime, unFormatDateTime } from './util.js';
 import { useBackend, callBackend } from '../lib/usebackend.js';
 import CreateRecord from './buttons/createrecord.jsx';
 
+import useUserStore from '../stores/user.js';
+
 import './record.css';
 
 export default function Record({
@@ -28,6 +30,8 @@ export default function Record({
   const [error, setError] = useState(null);
   const [dropdownOptions, setDropdownOptions] = useState({});
   const [formData, setFormData] = useState({});
+  const toast = useUserStore((state) => state.toast);
+
   const navigate = useNavigate();
 
   const schema = useBackend({
@@ -143,6 +147,13 @@ export default function Record({
       if (onClose) {
         onClose(response.data.id);
       }
+
+      toast({
+        severity: 'success',
+        summary: 'Success',
+        detail: `Record created successfully. ID: ${response.data.id}`,
+        life: 3000,
+      });
 
       if (!closeOnCreate) {
         navigate(`/${db}/${table}/${response.data.id}`);

@@ -8,7 +8,7 @@ import CreateRecord from '../buttons/createrecord.jsx';
 
 import { useBackend, callBackend } from '../../lib/usebackend.js';
 
-async function getDropDownOptions(settings) {
+async function getDropDownOptions(settings, value) {
   if (settings.join) {
     try {
       const response = await callBackend({
@@ -18,6 +18,7 @@ async function getDropDownOptions(settings) {
         args: {
           columns: ['id', settings.friendlyColumnName],
           queryModifier: settings.queryModifier,
+          queryModifierArgs: { settings, value },
         },
       });
 
@@ -45,12 +46,12 @@ export function edit({ columnId, settings, value, handleChange, ...props }) {
 
   useEffect(() => {
     async function pull() {
-      const options = await getDropDownOptions(settings);
+      const options = await getDropDownOptions(settings, value);
       setDropdownOptions(options);
     }
 
     pull();
-  }, [columnId, settings, reload]);
+  }, [columnId, settings, reload, value]);
 
   let filter = false;
   if (dropdownOptions && dropdownOptions.length > 10) {

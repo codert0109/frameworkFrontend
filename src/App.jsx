@@ -5,6 +5,7 @@ import ViewRecord from './routes/viewrecord.jsx';
 import View from './routes/view.jsx';
 import Token from './routes/token.jsx';
 import Home from './routes/home.jsx';
+import CreateRecord from './routes/createrecord.jsx';
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; // theme
 import 'primeflex/primeflex.css'; // css utility
@@ -26,6 +27,10 @@ function App() {
         {
           path: '/:db/:table',
           element: <Table />,
+        },
+        {
+          path: '/:db/:table/create',
+          element: <CreateRecord />,
         },
         {
           path: '/:db/:table/:recordId',

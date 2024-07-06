@@ -80,7 +80,7 @@ export default function DataTableExtended({
 
   const [lazyState, setLazyState] = useState(defaultLazyState);
 
-  const schema = useBackend({
+  const [schema] = useBackend({
     packageName: db,
     className: table,
     methodName: 'schemaGet',
@@ -96,7 +96,7 @@ export default function DataTableExtended({
     returnCount: true,
   });
 
-  const rows = useBackend({
+  const [rows] = useBackend({
     packageName: db,
     className: table,
     methodName: 'rowsGet',
@@ -180,6 +180,7 @@ export default function DataTableExtended({
         <CreateRecordButton
           db={db}
           table={table}
+          disabled={schema?.data?.readOnly}
           header={'Create ' + schema?.data?.name}
           onClose={() => {
             forceReload();
@@ -260,7 +261,11 @@ export default function DataTableExtended({
             if (fields[settings.fieldType]?.read) {
               const Read = fields[settings.fieldType].read;
               columnProps.body = (data) =>
-                Read({ value: data[columnId], settings });
+                Read({
+                  value: data[columnId],
+                  valueFriendly: data[columnId],
+                  settings,
+                });
             }
 
             return <Column key={columnId} field={columnId} {...columnProps} />;

@@ -34,24 +34,26 @@ export default function Record({
 
   const navigate = useNavigate();
 
-  const schema = useBackend({
+  const [schema] = useBackend({
     packageName: db,
     className: table,
     methodName: 'schemaGet',
     cache: true,
   });
 
-  const buttons = useBackend({
+  const [buttons] = useBackend({
     packageName: db,
     className: table,
     methodName: 'actionsGet',
   });
 
   let record = null;
+  let loading = false;
+  let errormsg = null;
   let newRecord = true;
   if (recordId) {
     // this is ok because this component will never be rendered as a new record and then again as an existing component
-    record = useBackend({
+    [record, loading, errormsg] = useBackend({
       packageName: db,
       className: table,
       methodName: 'recordGet',
@@ -175,7 +177,15 @@ export default function Record({
   const renderInputField = (columnId, settings) => {
     let Field = Fields.string.edit;
 
-    if (settings.readOnly) {
+    let value = formData[columnId];
+    let valueFriendly = value;
+
+    if (settings.join) {
+      valueFriendly =
+        formData[columnId + '_' + settings.friendlyColumnName] || value;
+    }
+
+    if (settings.readOnly && !newRecord) {
       if (Fields[settings.fieldType]?.read) {
         Field = Fields[settings.fieldType].read;
       } else {
@@ -188,13 +198,12 @@ export default function Record({
       Field = Fields[settings.fieldType].edit;
     }
 
-    let value = formData[columnId];
-
     return (
       <Field
         columnId={columnId}
         settings={settings}
         value={value}
+        valueFriendly={valueFriendly}
         handleChange={handleChange}
       />
     );
@@ -204,7 +213,7 @@ export default function Record({
 
   return (
     <>
-      <h2>{newRecord ? '' : 'Update ' + schema?.data?.name}</h2>
+      <h2>{(newRecord ? 'Create ' : 'Update ') + schema?.data?.name}</h2>
       <Tooltip target=".tooltip" />
       <form onSubmit={(e) => e.preventDefault()}>
         {Object.entries(schema?.data?.schema || {}).map(
@@ -221,6 +230,8 @@ export default function Record({
               newRecord
             )
               return; // Dont show the column that contains a forgien key that was supplied for new records
+
+            if (newRecord && !settings.createAllowed) return; // Don't show readonly fields on new records
 
             return (
               <div className="field grid" key={columnId}>

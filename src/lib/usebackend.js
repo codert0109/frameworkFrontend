@@ -18,6 +18,8 @@ export function useBackend({
   clear = false, // If ever true, the data will be cleared.
 }) {
   const [returnValue, setReturnValue] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState(null);
   const [newArgs, setNewArgs] = React.useState(null);
 
   React.useEffect(() => {
@@ -34,10 +36,17 @@ export function useBackend({
 
       let response;
 
-      if (cache) {
-        response = await api.fetchCached(URL, newArgs);
-      } else {
-        response = await api.fetch(URL, newArgs);
+      setLoading(true);
+      try {
+        if (cache) {
+          response = await api.fetchCached(URL, newArgs);
+        } else {
+          response = await api.fetch(URL, newArgs);
+        }
+      } catch (e) {
+        setError(e);
+        setLoading(false);
+        return;
       }
 
       const took = new Date().getTime() - start;
@@ -52,6 +61,7 @@ export function useBackend({
       }
 
       setReturnValue(response);
+      setLoading(false);
     };
     fetchData();
   }, [packageName, className, methodName, newArgs, reload]);
@@ -67,7 +77,7 @@ export function useBackend({
     setNewArgs(args);
   }
 
-  return returnValue;
+  return [returnValue, loading, error];
 }
 
 export function callBackend({

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
-import CreateRecord from '../record.jsx'; // Adjust the path as per your project structure
+import CreateRecord from '../record.jsx';
 
 export default function AddRecordButton({
   db,
@@ -9,6 +9,7 @@ export default function AddRecordButton({
   onClose,
   closeOnCreate,
   header = 'Create Record',
+  disabled = false,
   where,
 }) {
   const [showDialog, setShowDialog] = useState(false);
@@ -28,6 +29,8 @@ export default function AddRecordButton({
         className="mx-1"
         onClick={openDialog}
         tooltip="Create record"
+        disabled={disabled}
+        visible={!disabled} // TODO decide if we want to hide the button or just disable it. For ticketing, we want to hide it. Other apps? probably disable.
       />
 
       <Dialog

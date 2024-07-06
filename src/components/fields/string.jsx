@@ -21,6 +21,6 @@ export function edit({
   );
 }
 
-export function read({ value }) {
-  return value;
+export function read({ valueFriendly, value }) {
+  return valueFriendly;
 }

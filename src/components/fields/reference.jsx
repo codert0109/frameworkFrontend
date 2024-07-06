@@ -58,6 +58,11 @@ export function edit({ columnId, settings, value, handleChange, ...props }) {
     filter = true;
   }
 
+  if (!dropdownOptions || dropdownOptions.length === 0) {
+    console.log(props);
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <Dropdown

@@ -28,7 +28,7 @@ export default function Root() {
   const errorMessage = useUserStore((state) => state.errorMessage);
   const clearErrorMessage = useUserStore((state) => state.clearErrorMessage);
 
-  const newItems = useBackend({
+  const [newItems] = useBackend({
     packageName: 'core',
     className: 'menu',
     methodName: 'getAllMenuItems',
@@ -129,7 +129,7 @@ function buildMenu(items, navigate) {
 
     if (items[item].view) {
       itemoutput.command = () => {
-        navigate(`/${items[item].db}/${items[item].table}`, {
+        navigate(items[item].navigate, {
           state: {
             view: items[item].view,
             filter: items[item].filter,

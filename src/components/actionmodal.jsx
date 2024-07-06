@@ -51,7 +51,7 @@ export default function ActionModal({
       }
     }
     if (button.method) {
-      callBackend({
+      await callBackend({
         packageName: db,
         className: table,
         methodName: button.method,

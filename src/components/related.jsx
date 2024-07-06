@@ -7,7 +7,7 @@ import DataTable from './datatable.jsx';
 
 export default function Related({ db, table, recordId, reload, forceReload }) {
   const tabview = useRef(null);
-  const tables = useBackend({
+  const [tables] = useBackend({
     packageName: db,
     className: table,
     methodName: 'childrenGet',

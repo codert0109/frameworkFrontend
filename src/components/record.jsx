@@ -11,7 +11,6 @@ import ActionButton from './buttons/actionbutton.jsx';
 import { formatDateTime, unFormatDateTime } from './util.js';
 
 import { useBackend, callBackend } from '../lib/usebackend.js';
-import CreateRecord from './buttons/createrecord.jsx';
 
 import useUserStore from '../stores/user.js';
 
@@ -97,7 +96,7 @@ export default function Record({
       if (newRecord && schema?.data?.schema?.id) {
         const temp = {};
         for (const [columnId, settings] of Object.entries(schema.data.schema)) {
-          if (settings.defaultValue) {
+          if (settings.defaultValue && (!newRecord || settings.createAllowed)) {
             temp[columnId] = settings.defaultValue;
           }
         }

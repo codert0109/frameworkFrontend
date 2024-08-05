@@ -195,10 +195,10 @@ export default function Record({
             )}
             {!newRecord &&
               buttons?.data &&
-              buttons.data.map((button) => (
+              Object.entries(buttons.data).map(([key, button]) => (
                 <ActionButton
                   button={button}
-                  key={button.id}
+                  key={key}
                   db={db}
                   table={table}
                   recordId={recordId}

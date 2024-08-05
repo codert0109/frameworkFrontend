@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { useBackend, callBackend } from '../lib/usebackend.js';
 import useUserStore from '../stores/user.js';
-import FormV2 from './formv2.jsx';
+import Form from './form.jsx';
 import ActionButton from './buttons/actionbutton.jsx';
 import { formatDateTime, unFormatDateTime } from './util.js';
 import './record.css';
@@ -163,7 +163,7 @@ export default function Record({
   return (
     <>
       <h2>{(newRecord ? 'Create ' : 'Update ') + schema?.data?.name}</h2>
-      <FormV2
+      <Form
         schema={filteredSchema}
         formData={formData}
         handleChange={handleChange}
@@ -210,7 +210,7 @@ export default function Record({
               ))}
           </div>
         </div>
-      </FormV2>
+      </Form>
     </>
   );
 }

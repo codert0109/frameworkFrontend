@@ -1,172 +1,87 @@
-import React, { useState } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
+import React from 'react';
 import { Tooltip } from 'primereact/tooltip';
+import Fields from './fields/index.jsx';
 
-import { Password } from 'primereact/password';
-import './record.css';
-
-export default function Form({
-  fields = {}, // Required
-  where = [],
-  table = null,
-  recordId = null,
-  defaults = {},
-  onSubmit = null,
-  onCancel = null,
-  confirmLabel = 'Update',
-}) {
-  const [formData, setFormData] = useState({});
-  const newRecord = !recordId;
-
-  const handleSubmit = async () => {
-    if (onSubmit) {
-      onSubmit(formData);
-    }
-  };
-
-  const handleChange = (columnId, value) => {
-    setFormData({ ...formData, [columnId]: value });
-  };
-
+/**
+ * Form Component
+ *
+ * @param {Object} props
+ * @param {Object} props.schema - The schema object containing only the field definitions to be rendered
+ * @param {Object} props.formData - The current form data
+ * @param {Function} props.handleChange - Function to handle field value changes
+ * @param {React.ReactNode} props.children - Additional content to be rendered inside the form (e.g., buttons)
+ *
+ * @example
+ * <Form
+ *   schema={{
+ *     field1: { friendlyName: 'Field 1', fieldType: 'string' },
+ *     field2: { friendlyName: 'Field 2', fieldType: 'number' }
+ *   }}
+ *   formData={{ field1: 'value1', field2: 42 }}
+ *   handleChange={(fieldName, newValue) => {}}
+ * >
+ *   <button type="submit">Submit</button>
+ * </Form>
+ */
+export default function Form({ schema, formData, handleChange, children }) {
   const renderInputField = (columnId, settings) => {
+    let Field = Fields.string.edit;
+
+    let value = formData[columnId];
+    let valueFriendly = value;
+
     if (settings.join) {
-      // The field is a reference to another table
-      return (
-        <Dropdown
-          value={defaults[columnId]}
-          onChange={(e) => {
-            handleChange(columnId, e.value);
-          }}
-          optionLabel={settings.friendlyColumnName}
-          optionValue="id"
-          options={dropdownOptions[columnId]}
-          className="w-full md:w-14rem"
-          size={settings.fieldWidth}
-        />
-      );
+      valueFriendly =
+        formData[columnId + '_' + settings.friendlyColumnName] || value;
     }
-    switch (settings.fieldType) {
-      case 'select':
-        return (
-          <Dropdown
-            value={defaults[columnId]}
-            onChange={(e) => {
-              handleChange(columnId, e.value);
-            }}
-            options={settings.options}
-            className="w-full md:w-14rem"
-            size={settings.fieldWidth}
-          />
-        );
-      case 'textArea':
-      case 'html':
-        return (
-          <InputTextarea
-            id={columnId}
-            name={columnId}
-            placeholder={settings.helpText}
-            onChange={(e) => handleChange(columnId, e.target.value)}
-            value={defaults[columnId]}
-            style={{
-              width: settings.fieldWidth * 10,
-            }}
-            autoResize
-          />
-        );
-      /*case 'html':
-            return (
-              <Interweave content={formData[columnId]} />
-            );
-        */
-      case 'password':
-        return (
-          <Password
-            value={defaults[columnId]}
-            onChange={(e) => handleChange(columnId, e.target.value)}
-            toggleMask
-          />
-        );
-      default:
-        // 'text' or other types
-        return (
-          <InputText
-            id={columnId}
-            name={columnId}
-            placeholder={settings.helpText}
-            onChange={(e) => handleChange(columnId, e.target.value)}
-            value={defaults[columnId]}
-            size={settings.fieldWidth}
-          />
-        );
+
+    if (settings.readOnly) {
+      if (Fields[settings.fieldType]?.read) {
+        Field = Fields[settings.fieldType].read;
+      } else {
+        Field = Fields.string.read;
+      }
+    } else if (settings.join) {
+      Field = Fields.reference.edit;
+    } else if (Fields[settings.fieldType]?.edit) {
+      Field = Fields[settings.fieldType].edit;
     }
+
+    return (
+      <Field
+        columnId={columnId}
+        settings={settings}
+        value={value}
+        valueFriendly={valueFriendly}
+        handleChange={handleChange}
+      />
+    );
   };
 
   return (
     <>
-      <Tooltip target=".reference" />
+      <Tooltip target=".tooltip" />
       <form onSubmit={(e) => e.preventDefault()}>
-        {Object.entries(fields).map(([columnId, settings]) => {
-          if (table && settings.table != table) return;
-          if (settings.primaryKey) return;
-          if (settings.hidden) return;
-          if (settings.hiddenRecord) return;
-          if (settings.hiddenCreate && newRecord) return;
-          if (settings.hiddenUpdate && !newRecord) return;
-          if (
-            where &&
-            where.some((obj) => obj.hasOwnProperty(columnId)) &&
-            newRecord
-          )
-            return; // Dont show the column that contains a forgien key that was supplied for new records
-
-          return (
-            <div className="field grid" key={columnId}>
-              <label
-                htmlFor={columnId}
-                className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"
+        {Object.entries(schema || {}).map(([columnId, settings]) => (
+          <div className="field grid" key={columnId}>
+            <label
+              htmlFor={columnId}
+              className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"
+            >
+              <div
+                data-pr-tooltip={settings.helpText}
+                data-pr-position="top"
+                className="tooltip"
               >
                 {settings.friendlyName || columnId}
-              </label>
-              <div className="col-12 md:col-10">
-                {renderInputField(columnId, settings)}
-                {settings.join && (
-                  <i
-                    className="ml-3 pi pi-external-link reference"
-                    style={{ color: 'var(--primary-color)' }}
-                    onClick={() => {
-                      navigate(`/${db}/${settings.join}/${defaults[columnId]}`);
-                    }}
-                    data-pr-tooltip="View the related record"
-                  ></i>
-                )}
               </div>
+            </label>
+            <div className="col-12 md:col-10">
+              {renderInputField(columnId, settings)}
             </div>
-          );
-        })}
-        <div className="field grid" key="submitbutton">
-          <div className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"></div>
-          <div className="col-12 md:col-10">
-            <Button
-              type="submit"
-              label={confirmLabel}
-              className="mr-1 mb-1"
-              onClick={() => {
-                handleSubmit({ close: false });
-              }}
-            />
-            <Button
-              label="Cancel"
-              severity="secondary"
-              className="mr-1 mb-1"
-              onClick={() => {
-                if (onCancel) onCancel();
-              }}
-            />
           </div>
-        </div>
+        ))}
+        {children}
       </form>
     </>
   );

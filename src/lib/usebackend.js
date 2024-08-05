@@ -16,11 +16,14 @@ export function useBackend({
   cache = false, // If true, the data will be cached.
   filter = false, // This is a function that can be used to filter the data any time it is retrieved from the server, before it is stored and returned.
   clear = false, // If ever true, the data will be cleared.
+  skip = false, // If true, the call will be skipped.
 }) {
   const [returnValue, setReturnValue] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [newArgs, setNewArgs] = React.useState(null);
+
+  if (skip) return [returnValue, loading, error];
 
   React.useEffect(() => {
     const fetchData = async () => {

@@ -46,11 +46,12 @@ export default function ActionButton({
         type="button"
         label={button.label}
         key={button.label}
+        disabled={button.disabled ? true : false}
         className="mr-1 mb-1"
         onClick={onClick}
         severity={button.color || 'primary'}
-        tooltip={button.helpText}
-        tooltipOptions={{ position: 'top' }}
+        tooltip={button.disabled || button.helpText}
+        tooltipOptions={{ position: 'top', showOnDisabled: true }}
       />
     </>
   );

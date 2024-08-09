@@ -34,6 +34,10 @@ export default function Record({
     packageName: db,
     className: table,
     methodName: 'actionsGet',
+    args: {
+      id: recordId,
+    },
+    reload,
   });
 
   const newRecord = !recordId;

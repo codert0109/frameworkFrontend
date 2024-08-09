@@ -69,11 +69,15 @@ export default function Form({ schema, formData, handleChange, children }) {
               className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"
             >
               <div
-                data-pr-tooltip={settings.helpText}
+                data-pr-tooltip={
+                  (settings.helpText ? settings.helpText : '') +
+                  (settings.required ? ' This field is required.' : '')
+                }
                 data-pr-position="top"
                 className="tooltip"
               >
                 {settings.friendlyName || columnId}
+                {settings.required && <span className="text-danger"> *</span>}
               </div>
             </label>
             <div className="col-12 md:col-10">

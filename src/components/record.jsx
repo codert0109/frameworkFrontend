@@ -103,6 +103,7 @@ export default function Record({
         className: table,
         methodName: 'recordCreate',
         args: { data: postData },
+        supressDialog: true,
       });
 
       if (!response.ok) {
@@ -125,9 +126,14 @@ export default function Record({
       } else if (onClose) {
         onClose();
       }
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
+    } catch (error) {
+      console.error('Error creating record:', error);
+      toast({
+        severity: 'error',
+        summary: 'Error',
+        detail: `An error occurred: ${error.message}`,
+        life: 5000,
+      });
     }
   };
 

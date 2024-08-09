@@ -100,8 +100,8 @@ export function callBackend({
   }
 
   if (cache) {
-    return api.fetchCached(URL, args, ttl, auth);
+    return api.fetchCached(URL, args, ttl, auth, supressDialog);
   }
 
-  return api.fetch(URL, args, auth);
+  return api.fetch(URL, args, auth, supressDialog);
 }

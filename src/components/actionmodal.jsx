@@ -55,14 +55,15 @@ export default function ActionModal({
         }
       }
     }
-    if (button.method) {
+    if (button.id) {
       try {
         await callBackend({
           packageName: db,
           className: table,
-          methodName: button.method,
+          methodName: button.id,
           recordId,
           args: { ...formData, data: recordFormData },
+          supressDialog: true,
         });
 
         if (button.showSuccess) {

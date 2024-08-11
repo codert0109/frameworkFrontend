@@ -30,6 +30,8 @@ export default function Record({
     cache: true,
   });
 
+  const newRecord = !recordId;
+
   const [buttons] = useBackend({
     packageName: db,
     className: table,
@@ -38,11 +40,10 @@ export default function Record({
       id: recordId,
     },
     reload,
+    skip: newRecord,
   });
 
-  const newRecord = !recordId;
-
-  const [record, loading, errormsg] = useBackend({
+  const [record, loading] = useBackend({
     packageName: db,
     className: table,
     methodName: 'recordGet',

@@ -48,15 +48,21 @@ export default function ActionModal({
   };
 
   const onSubmit = async () => {
-    for (const column in columns) {
-      if (columns[column].columnType == 'datetime') {
-        if (recordFormData[column]) {
-          recordFormData[column] = unFormatDateTime(recordFormData[column]);
-        }
+    if (button.noOp) {
+      if (button.close) {
+        await closeDialog();
+        navigate(-1);
       }
-    }
-    if (button.id) {
+    } else {
       try {
+        for (const column in columns) {
+          if (columns[column].columnType == 'datetime') {
+            if (recordFormData[column]) {
+              recordFormData[column] = unFormatDateTime(recordFormData[column]);
+            }
+          }
+        }
+
         await callBackend({
           packageName: db,
           className: table,

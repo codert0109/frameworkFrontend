@@ -179,6 +179,7 @@ export default function Record({
         formData={formData}
         handleChange={handleChange}
         key={`${db}${table}${recordId}`}
+        newRecord={newRecord}
       >
         <div className="field grid" key="submitbutton">
           <div className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"></div>

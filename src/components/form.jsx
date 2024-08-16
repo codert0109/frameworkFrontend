@@ -23,7 +23,13 @@ import Fields from './fields/index.jsx';
  *   <button type="submit">Submit</button>
  * </Form>
  */
-export default function Form({ schema, formData, handleChange, children }) {
+export default function Form({
+  schema,
+  formData,
+  handleChange,
+  children,
+  newRecord,
+}) {
   const renderInputField = (columnId, settings) => {
     let Field = Fields.string.edit;
 
@@ -35,7 +41,7 @@ export default function Form({ schema, formData, handleChange, children }) {
         formData[columnId + '_' + settings.friendlyColumnName] || value;
     }
 
-    if (settings.readOnly) {
+    if (settings.readOnly && !(newRecord && settings.createAllowed)) {
       if (Fields[settings.fieldType]?.read) {
         Field = Fields[settings.fieldType].read;
       } else {

@@ -18,13 +18,15 @@ export default function Root() {
   };
 
   return (
-    <DataTable
-      db={db}
-      table={table}
-      reload={reload}
-      forceReload={forceReload}
-      where={generateLocationWhere(location)}
-      key={`${db}.${table}.${JSON.stringify(location?.state?.filter || {})}`}
-    />
+    <React.Suspense>
+      <DataTable
+        db={db}
+        table={table}
+        reload={reload}
+        forceReload={forceReload}
+        where={generateLocationWhere(location)}
+        key={`${db}.${table}.${JSON.stringify(location?.state?.filter || {})}`}
+      />
+    </React.Suspense>
   );
 }

@@ -14,7 +14,7 @@ export function edit({
       name={columnId}
       placeholder={settings.helpText}
       onChange={(e) => handleChange(columnId, e.target.value)}
-      value={value}
+      value={value || ''}
       key={columnId}
       style={{ height: '100px' }}
     />

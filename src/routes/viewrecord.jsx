@@ -14,21 +14,24 @@ export default function ViewRecord() {
 
   return (
     <>
-      
-      <Record
-        db={db}
-        table={table}
-        recordId={parseInt(recordId)}
-        reload={reload}
-        forceReload={forceReload}
-      />
-      <Related
-        db={db}
-        table={table}
-        recordId={parseInt(recordId)}
-        reload={reload}
-        forceReload={forceReload}
-      />
+      <React.Suspense fallback={<div></div>}>
+        <Record
+          db={db}
+          table={table}
+          recordId={parseInt(recordId)}
+          reload={reload}
+          forceReload={forceReload}
+        />
+        <React.Suspense fallback={<div></div>}>
+          <Related
+            db={db}
+            table={table}
+            recordId={parseInt(recordId)}
+            reload={reload}
+            forceReload={forceReload}
+          />
+        </React.Suspense>
+      </React.Suspense>
     </>
   );
 }

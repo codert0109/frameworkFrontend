@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import { useBackend, callBackend } from '../lib/usebackend.js';
+import {
+  useBackend,
+  callBackend,
+  useBackendSuspense,
+} from '../lib/usebackend.js';
 import useUserStore from '../stores/user.js';
 import Form from './form.jsx';
 import ActionButton from './buttons/actionbutton.jsx';
@@ -21,9 +25,10 @@ export default function Record({
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
   const toast = useUserStore((state) => state.toast);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const [schema] = useBackend({
+  const [schema] = useBackendSuspense({
     packageName: db,
     className: table,
     methodName: 'schemaGet',
@@ -32,7 +37,7 @@ export default function Record({
 
   const newRecord = !recordId;
 
-  const [buttons] = useBackend({
+  const [buttons] = useBackendSuspense({
     packageName: db,
     className: table,
     methodName: 'actionsGet',
@@ -43,12 +48,11 @@ export default function Record({
     skip: newRecord,
   });
 
-  const [record, loading] = useBackend({
+  const [record, recordLoading] = useBackendSuspense({
     packageName: db,
     className: table,
     methodName: 'recordGet',
     recordId,
-    args: {},
     reload,
     skip: newRecord,
   });
@@ -69,8 +73,10 @@ export default function Record({
         Object.assign(initialData, whereClause);
       });
       setFormData(initialData);
+      setLoading(false);
     } else if (record) {
       setFormData(record.data);
+      setLoading(false);
     }
   }, [record, schema]);
 
@@ -97,7 +103,7 @@ export default function Record({
     Object.entries(schema?.data?.schema || {}).forEach(
       ([columnId, settings]) => {
         if (settings.columnType === 'datetime') {
-          postData[columnId] = unFormatDateTime(formData[columnId]);
+          postData[columnId] = unFormatDateTime(formData[columnId]); // TODO: get rid of this. may not actually be needed
         }
       }
     );
@@ -169,7 +175,7 @@ export default function Record({
   }, [schema, table, newRecord, where]);
 
   if (error) return <p>Error: {error}</p>;
-  if (loading) return <p>Loading...</p>;
+  if (loading || recordLoading) return <></>;
 
   return (
     <>

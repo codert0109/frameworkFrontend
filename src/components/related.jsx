@@ -6,8 +6,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import DataTable from './datatable.jsx';
 
 export default function Related({ db, table, recordId, reload, forceReload }) {
-  const tabview = useRef(null);
-  const [tables] = useBackend({
+  const [tables, loading] = useBackend({
     packageName: db,
     className: table,
     methodName: 'childrenGet',
@@ -49,9 +48,16 @@ export default function Related({ db, table, recordId, reload, forceReload }) {
 
   console.log('Related', db, table, recordId, tables);
 
+  if (loading) {
+    console.log('ASDFASDFASDF', 'LOADING');
+    return <></>;
+  }
+
+  console.log('ASDFASDFASDF', table);
+
   return (
     <>
-      <TabView scrollable key={table + 'related'} ref={tabview}>
+      <TabView key={table + 'related'}>
         {tables &&
           tables.length > 0 &&
           tables.map((childTable) => {

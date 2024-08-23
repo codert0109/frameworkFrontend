@@ -141,7 +141,13 @@ class API {
     };
   }
 
-  async fetchCached(url, options = {}, ttl = 1000 * 60 * 60, auth = true) {
+  async fetchCached(
+    url,
+    options = {},
+    ttl = 1000 * 60 * 60,
+    auth = true,
+    supressDialog = false
+  ) {
     //console.log('Trying cached URL: ', url);
 
     // Try to return cached data if available and valid
@@ -149,7 +155,7 @@ class API {
     if (cachedData) return Promise.resolve(cachedData);
 
     // If cache is not valid, proceed with fetch
-    const response = await this.fetch(url, options, auth);
+    const response = await this.fetch(url, options, auth, supressDialog);
 
     // Assuming the response is JSON and fetch was successful
     if (response.ok) {

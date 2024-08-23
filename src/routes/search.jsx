@@ -109,18 +109,25 @@ export default function Search() {
 
       {(loading || results) && (
         <div className="search-results mt-0">
-          <div className="flex align-items-center">
-            <h2 className="mt-3">Search Results</h2>
+          <div className=" mt-3 mb-3">
+            <font size="5" className="pr-2">
+              Search Results
+            </font>
             {loading && (
-              <ProgressSpinner style={{ width: '20px', height: '20px' }} />
+              <ProgressSpinner
+                style={{ width: '20px', height: '20px' }}
+                strokeWidth="8"
+                animationDuration=".25s"
+              />
+            )}
+            {error && !loading && (
+              <>
+                An error occured updating the search results. Please try again.
+                Error: {error.message}
+              </>
             )}
           </div>
-          {error && (
-            <>
-              An error occured updating search results. Please try again. Error:{' '}
-              {error.message}
-            </>
-          )}
+
           {results && results.data && results.data.results && (
             <DataView
               value={results.data.results}

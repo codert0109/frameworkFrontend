@@ -161,8 +161,6 @@ export function useBackend({
   const [error, setError] = React.useState(null);
   const [newArgs, setNewArgs] = React.useState(null);
 
-  if (skip) return [returnValue, loading, error];
-
   React.useEffect(() => {
     const fetchData = async () => {
       if (newArgs === null) return;
@@ -212,6 +210,8 @@ export function useBackend({
       setReturnValue(null);
     }
   }, [clear]);
+
+  if (skip) return [returnValue, loading, error];
 
   // This prevents duplicate calls when just a reference changes.
   if (!isEqual(newArgs, args)) {

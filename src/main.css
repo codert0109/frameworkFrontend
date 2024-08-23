@@ -2,3 +2,20 @@
     white-space: nowrap;
     justify-content: flex-end;
 }
+
+.arrow-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 0.25rem;
+    background: linear-gradient(to bottom, transparent, rgba(243, 244, 246, 1) 50%);
+    height: 2rem;
+}
+
+.max-h-24 {
+    max-height: 6rem;
+    /* Equivalent to Tailwind's h-24 */
+}

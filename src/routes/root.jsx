@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, startTransition } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,6 +7,7 @@ import { Menu } from 'primereact/menu';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Toast } from 'primereact/toast';
+import { InputText } from 'primereact/inputtext';
 
 import { useBackend } from '../lib/usebackend.js';
 
@@ -78,14 +79,30 @@ export default function Root() {
 
   const end = (
     <>
-      <Menu popup model={userItems} ref={userMenu} show={false} />
-      <Avatar
-        icon="pi pi-user"
-        size="medium"
-        severity="secondary"
-        aria-label="User"
-        onClick={(event) => userMenu.current.toggle(event)}
-      />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          navigate(`/search?value=${e.target.search.value}`);
+          e.target.search.value = '';
+        }}
+      >
+        <InputText
+          placeholder="Search"
+          type="text"
+          id="search"
+          key="search"
+          className="w-8rem sm:w-auto mr-3 mb-0 mt-0 p-inputtext-sm"
+        />
+
+        <Menu popup model={userItems} ref={userMenu} show={false} />
+        <Avatar
+          icon="pi pi-user"
+          size="medium"
+          severity="secondary"
+          aria-label="User"
+          onClick={(event) => userMenu.current.toggle(event)}
+        />
+      </form>
     </>
   );
 
@@ -129,12 +146,14 @@ function buildMenu(items, navigate) {
 
     if (items[item].view) {
       itemoutput.command = () => {
-        navigate(items[item].navigate, {
-          state: {
-            view: items[item].view,
-            filter: items[item].filter,
-            tableHeader: items[item].label,
-          },
+        startTransition(() => {
+          navigate(items[item].navigate, {
+            state: {
+              view: items[item].view,
+              filter: items[item].filter,
+              tableHeader: items[item].label,
+            },
+          });
         });
       };
     }

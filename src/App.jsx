@@ -6,6 +6,7 @@ import View from './routes/view.jsx';
 import Token from './routes/token.jsx';
 import Home from './routes/home.jsx';
 import CreateRecord from './routes/createrecord.jsx';
+import Search from './routes/search.jsx';
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css'; // theme
 import 'primeflex/primeflex.css'; // css utility
@@ -23,7 +24,10 @@ function App() {
           path: '/',
           element: <Home />,
         },
-
+        {
+          path: '/search',
+          element: <Search />,
+        },
         {
           path: '/:db/:table',
           element: <Table />,

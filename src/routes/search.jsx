@@ -123,42 +123,6 @@ export default function Search() {
           )}
           {loading && !results && <p>Loading...</p>}
           {error && <p>Error: {error.message}</p>}
-          {results &&
-            results.data &&
-            results.data.results &&
-            results.data.results.map((result, index) => (
-              <>
-                <Card
-                  key={index}
-                  className="mt-0 mb-1 p-0 bg-gray-100"
-                  title={result._id}
-                >
-                  <a
-                    href=""
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate(
-                        `/${result.searchDb}/${result.searchTable}/${result.searchRecordId}`
-                      );
-                    }}
-                  >
-                    {`/${result.searchDb}/${result.searchTable}/${result.searchRecordId}`}
-                  </a>
-
-                  <p className="m-0 p-0">
-                    <pre className="m-0 p-0">
-                      {
-                        result.searchText
-                        //{result._highlights[0].searchText || ''}
-                      }
-                    </pre>
-                  </p>
-                  <pre className="m-0 p-0">
-                    {JSON.stringify(result, null, 2)}
-                  </pre>
-                </Card>
-              </>
-            ))}
         </div>
       )}
     </div>

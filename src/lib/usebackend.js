@@ -180,13 +180,15 @@ export function useBackend({
         if (cache) {
           response = await api.fetchCached(URL, newArgs);
         } else {
-          response = await api.fetch(URL, newArgs);
+          response = await api.fetch(URL, newArgs, true, true);
         }
       } catch (e) {
         setError(e);
         setLoading(false);
         return;
       }
+
+      setError(false);
 
       const took = new Date().getTime() - start;
       console.log(

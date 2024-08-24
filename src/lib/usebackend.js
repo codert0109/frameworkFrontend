@@ -155,11 +155,15 @@ export function useBackend({
   filter = false, // This is a function that can be used to filter the data any time it is retrieved from the server, before it is stored and returned.
   clear = false, // If ever true, the data will be cleared.
   skip = false, // If true, the call will be skipped.
+  queueing = false, // If true, the call will be queued if another call is in progress. This is useful for calls that are triggered by user input.
+  timeout = 30000, // The timeout in milliseconds
 }) {
   const [returnValue, setReturnValue] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [newArgs, setNewArgs] = React.useState(null);
+  const queuedRequest = React.useRef(null);
+  const fetching = React.useRef(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -176,15 +180,17 @@ export function useBackend({
       let response;
 
       setLoading(true);
+      fetching.current = true;
       try {
         if (cache) {
-          response = await api.fetchCached(URL, newArgs);
+          response = await api.fetchCached(URL, newArgs, true, true, timeout);
         } else {
-          response = await api.fetch(URL, newArgs, true, true);
+          response = await api.fetch(URL, newArgs, true, true, timeout);
         }
       } catch (e) {
         setError(e);
         setLoading(false);
+        fetching.current = false;
         return;
       }
 
@@ -202,7 +208,15 @@ export function useBackend({
       }
 
       setReturnValue(response);
+
+      console.log('Done with request', newArgs);
+      if (queuedRequest.current) {
+        setNewArgs(queuedRequest.current);
+        console.log('Executing request', queuedRequest.current);
+        queuedRequest.current = null;
+      }
       setLoading(false);
+      fetching.current = false;
     };
     fetchData();
   }, [packageName, className, methodName, newArgs, reload]);
@@ -217,7 +231,13 @@ export function useBackend({
 
   // This prevents duplicate calls when just a reference changes.
   if (!isEqual(newArgs, args)) {
-    setNewArgs(args);
+    if (queueing && fetching.current) {
+      console.log('Queuing request', args);
+      queuedRequest.current = args;
+    } else {
+      console.log('Executing request', args);
+      setNewArgs(args);
+    }
   }
 
   return [returnValue, loading, error];

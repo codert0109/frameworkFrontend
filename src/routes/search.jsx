@@ -32,6 +32,8 @@ export default function Search() {
     },
     skip: !searchQuery,
     reload: searchTrigger,
+    queueing: true,
+    timeout: 5000,
   });
 
   const handleSearch = (e) => {

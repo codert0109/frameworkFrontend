@@ -26,21 +26,38 @@ class API {
     });
   }
 
-  // JSDOC
+  /**
+   * Adds a timeout to a Promise
+   * @param {Promise} promise - The Promise to add a timeout to
+   * @param {number} timeoutMs - The timeout in milliseconds
+   * @returns {Promise} - A Promise that rejects if the timeout is reached
+   */
+  timeoutPromise(promise, timeoutMs) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), timeoutMs)
+      ),
+    ]);
+  }
+
   /**
    * Fetch data from the API
    * @param {string} url - The URL to fetch data from
    * @param {object} body - The body of the request
    * @param {boolean} auth - Whether to wait for authentication
-   * @param {boolean} supressDialog - Whether to supress error dialogs
+   * @param {boolean} suppressDialog - Whether to suppress error dialogs
+   * @param {number} timeoutMs - The timeout in milliseconds
    * @returns {Promise} - A promise that resolves to the fetched data
-   * @throws {Error} - Throws an error if the fetch fails
-   *
-   *
-   *  **/
-
-  async fetch(url, body = {}, auth = true, supressDialog = false) {
-    //console.log('Trying URL: ', url);
+   * @throws {Error} - Throws an error if the fetch fails or times out
+   */
+  async fetch(
+    url,
+    body = {},
+    auth = true,
+    suppressDialog = false,
+    timeoutMs = 30000
+  ) {
     while (true) {
       if (auth) {
         await this.waitForAuthentication();
@@ -48,118 +65,119 @@ class API {
 
       const token = useUserStore.getState().token;
 
-      let response = null;
       try {
-        response = await fetch(
-          url,
-          {
+        const response = await this.timeoutPromise(
+          fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(body),
-          },
-          token
+          }),
+          timeoutMs
         );
+
+        if (response.status === 401) {
+          console.log('Got 401 for URL: ', url);
+          useUserStore.getState().logout();
+          this.clearCache();
+          console.log(`Received 401, Waiting for re-authentication... `);
+          continue;
+        }
+
+        if (response.status === 403) {
+          throw new Error(
+            'Access Denied: You do not have permission to access this resource.'
+          );
+        }
+
+        if (response.status !== 200) {
+          console.log('Failed to fetch URL: ', url);
+          const json = await response.json();
+          if (json.error) {
+            if (!suppressDialog)
+              useUserStore.getState().setErrorMessage(json.error);
+            throw new Error(json.error);
+          }
+          throw new Error(`API call failed with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.messages) {
+          for (const message of data.messages) {
+            useUserStore.getState().toast(message);
+          }
+        }
+
+        if (this.cache[url]) {
+          delete this.cache[url];
+        }
+
+        return {
+          ok: response.ok,
+          data: data.data,
+          messages: data.messages,
+        };
       } catch (error) {
-        throw new Error('API call failed with fetch error.');
-      }
-
-      // not logged in
-      if (response.status == 401) {
-        console.log('Got 401 for URL: ', url);
-
-        useUserStore.getState().logout(); // clear out everything after recieving 401
-        this.clearCache();
-
-        console.log(`Recieved 401, Waiting for re-authentication... `);
-        continue;
-      }
-
-      if (response.status == 403) {
-        throw new Error(
-          'Access Denied: You do not have permission to access this resource.'
-        );
-      }
-
-      // failed
-      if (response.status !== 200) {
-        console.log('Failed to fetch URL: ', url);
-
-        const json = await response.json();
-        if (json.error) {
-          if (!supressDialog)
-            useUserStore.getState().setErrorMessage(json.error);
-          throw new Error(json.error);
+        if (error.message === 'Request timed out') {
+          throw new Error(`API call timed out after ${timeoutMs}ms`);
         }
-
-        throw new Error(`API call failed with unknown error.`);
+        throw new Error(`API call failed: ${error.message}`);
       }
-
-      // Success!
-      //console.log('Success! URL: ', url);
-      const data = await response.json();
-
-      if (data.messages) {
-        for (const message of data.messages) {
-          useUserStore.getState().toast(message); //
-        }
-      }
-
-      if (this.cache[url]) {
-        delete this.cache[url];
-      }
-
-      return {
-        ok: response.ok,
-        data: data.data,
-        messages: data.messages,
-      };
     }
   }
 
-  // Add a method to check and return cached data if available
   getCached(url, ttl) {
     const cachedItem = this.cache[url];
     if (cachedItem && Date.now() - cachedItem.timestamp < ttl) {
-      // Check if TTL is not exceeded
       console.log('Cache Hit!', url, cachedItem.data);
-      //return cachedItem.data;
-      // Return a deep copy of the cached data to prevent modification
       return JSON.parse(JSON.stringify(cachedItem.data));
     }
     console.log('Cache Miss!', url);
-    return null; // If no cache available or cache is expired
+    return null;
   }
 
-  // Add a method to update the cache
   updateCache(url, data) {
     this.cache[url] = {
-      data: JSON.parse(JSON.stringify(data)), // Store a deep copy so it doesnt get modified
-      timestamp: Date.now(), // Store the current time as the timestamp
+      data: JSON.parse(JSON.stringify(data)),
+      timestamp: Date.now(),
     };
   }
 
+  /**
+   * Fetch data from the API with caching
+   * @param {string} url - The URL to fetch data from
+   * @param {object} options - The options for the request
+   * @param {number} ttl - The time-to-live for the cache in milliseconds
+   * @param {boolean} auth - Whether to wait for authentication
+   * @param {boolean} suppressDialog - Whether to suppress error dialogs
+   * @param {number} timeoutMs - The timeout in milliseconds
+   * @returns {Promise} - A promise that resolves to the fetched or cached data
+   * @throws {Error} - Throws an error if the fetch fails or times out
+   */
   async fetchCached(
     url,
     options = {},
     ttl = 1000 * 60 * 60,
     auth = true,
-    supressDialog = false
+    suppressDialog = false,
+    timeoutMs = 30000
   ) {
-    //console.log('Trying cached URL: ', url);
-
-    // Try to return cached data if available and valid
     const cachedData = this.getCached(url, ttl);
     if (cachedData) return Promise.resolve(cachedData);
 
-    // If cache is not valid, proceed with fetch
-    const response = await this.fetch(url, options, auth, supressDialog);
+    const response = await this.fetch(
+      url,
+      options,
+      auth,
+      suppressDialog,
+      timeoutMs
+    );
 
-    // Assuming the response is JSON and fetch was successful
     if (response.ok) {
-      this.updateCache(url, response); // Update cache with the new data
+      this.updateCache(url, response);
       return response;
     } else {
       throw new Error(`Fetch failed with status: ${response.status}`);

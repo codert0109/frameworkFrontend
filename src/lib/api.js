@@ -1,10 +1,9 @@
 // api.js
 import useUserStore from '../stores/user.js';
 
+let globalCache = {};
 class API {
-  constructor() {
-    this.cache = {};
-  }
+  constructor() {}
 
   async waitForAuthentication() {
     const isAuthenticated = useUserStore.getState().isAuthenticated();
@@ -111,8 +110,8 @@ class API {
           }
         }
 
-        if (this.cache[url]) {
-          delete this.cache[url];
+        if (globalCache[url]) {
+          delete globalCache[url];
         }
 
         return {
@@ -130,7 +129,7 @@ class API {
   }
 
   getCached(url, ttl) {
-    const cachedItem = this.cache[url];
+    const cachedItem = globalCache[url];
     if (cachedItem && Date.now() - cachedItem.timestamp < ttl) {
       console.log('Cache Hit!', url, cachedItem.data);
       return JSON.parse(JSON.stringify(cachedItem.data));
@@ -140,7 +139,7 @@ class API {
   }
 
   updateCache(url, data) {
-    this.cache[url] = {
+    globalCache[url] = {
       data: JSON.parse(JSON.stringify(data)),
       timestamp: Date.now(),
     };
@@ -166,7 +165,12 @@ class API {
     timeoutMs = 30000
   ) {
     const cachedData = this.getCached(url, ttl);
-    if (cachedData) return Promise.resolve(cachedData);
+    if (cachedData) {
+      console.log('Cache hit', url);
+      return Promise.resolve(cachedData);
+    }
+
+    console.log('Cache miss', url);
 
     const response = await this.fetch(
       url,
@@ -185,7 +189,8 @@ class API {
   }
 
   clearCache() {
-    this.cache = {};
+    console.log('Clearing cache', this);
+    globalCache = {};
   }
 }
 

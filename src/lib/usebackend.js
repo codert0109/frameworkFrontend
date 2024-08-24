@@ -1,146 +1,12 @@
 import React, { useEffect } from 'react';
 import API from './api.js';
 import { isEqual } from 'lodash';
-import { suspend, clear } from 'suspend-react';
+import useUserStore from '../stores/user.js';
 
 const api = new API();
-let render = 0;
 
-const test = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, 3000);
-  });
-};
-
-export function useBackendSuspense({
-  packageName, // The package name to call
-  className, // The class name to call
-  methodName, // The method name to call
-  recordId = false, // recordId is optional. If it is not provided, the method will be called without a recordId.
-  args = null, // arguments sent to the method
-  reload = 1, // if this value changes a refresh will be forced
-  cache = false, // If true, the data will be cached.
-  filter = false, // This is a function that can be used to filter the data any time it is retrieved from the server, before it is stored and returned.
-  clear = false, // If ever true, the data will be cleared.
-  skip = false, // If true, the call will be skipped.
-}) {
-  if (skip) return [null, false, null];
-  if (clear) {
-    clear([
-      packageName,
-      className,
-      methodName,
-      recordId,
-      args,
-      reload,
-      cache,
-      filter,
-      false,
-      skip,
-    ]);
-    return [null, false, null];
-  }
-
-  return suspend(
-    async () => {
-      return await fetchData(
-        packageName,
-        className,
-        methodName,
-        recordId,
-        args,
-        reload,
-        cache,
-        filter,
-        clear,
-        skip
-      );
-    },
-    [
-      packageName,
-      className,
-      methodName,
-      recordId,
-      args,
-      reload,
-      cache,
-      filter,
-      clear,
-      skip,
-    ],
-    { equal: isEqual, lifespan: 1000 * 60 }
-  );
-}
-
-async function fetchData(
-  packageName,
-  className,
-  methodName,
-  recordId,
-  args,
-  reload,
-  cache,
-  filter,
-  clear,
-  skip
-) {
-  const start = new Date().getTime();
-
-  let URL = `/api/${packageName}/${className}/${methodName}`;
-
-  if (recordId) {
-    URL += `/${recordId}`;
-  }
-
-  let response;
-
-  try {
-    if (cache) {
-      response = await api.fetchCached(URL, args || {});
-    } else {
-      response = await api.fetch(URL, args || {});
-    }
-  } catch (e) {
-    return [null, false, e];
-  }
-
-  const took = new Date().getTime() - start;
-  console.log(
-    `${packageName}.${className}.${methodName} Data received in ${took} ms: `,
-    response,
-    arguments
-  );
-
-  if (filter) {
-    response = filter(response);
-  }
-
-  return [response, false, false];
-}
-
-function use(promise) {
-  if (promise.status === 'fulfilled') {
-    return promise.value;
-  } else if (promise.status === 'rejected') {
-    throw promise.reason;
-  } else if (promise.status === 'pending') {
-    throw promise;
-  } else {
-    promise.status = 'pending';
-    promise.then(
-      (result) => {
-        promise.status = 'fulfilled';
-        promise.value = result;
-      },
-      (reason) => {
-        promise.status = 'rejected';
-        promise.reason = reason;
-      }
-    );
-    throw promise;
-  }
+export function clearCache() {
+  api.clearCache();
 }
 
 // This handles calls to the backend. This is a high level interface that handles common react stuff for you. api.fetch is a low level interface that you can use if you want to handle the backend calls yourself, but it is not recommended.
@@ -164,6 +30,13 @@ export function useBackend({
   const [newArgs, setNewArgs] = React.useState(null);
   const queuedRequest = React.useRef(null);
   const fetching = React.useRef(false);
+  const userId = useUserStore((state) => state.userId);
+
+  console.log(
+    'usebackend userId',
+    `/api/${packageName}/${className}/${methodName}`,
+    userId
+  );
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -181,6 +54,7 @@ export function useBackend({
 
       setLoading(true);
       fetching.current = true;
+      console.log('usebackend fetching', URL);
       try {
         if (cache) {
           response = await api.fetchCached(URL, newArgs, true, true, timeout);
@@ -193,7 +67,7 @@ export function useBackend({
         fetching.current = false;
         return;
       }
-
+      console.log('usebackend done fetching', URL);
       setError(false);
 
       const took = new Date().getTime() - start;
@@ -219,7 +93,7 @@ export function useBackend({
       fetching.current = false;
     };
     fetchData();
-  }, [packageName, className, methodName, newArgs, reload]);
+  }, [packageName, className, methodName, newArgs, reload, userId]);
 
   useEffect(() => {
     if (clear) {

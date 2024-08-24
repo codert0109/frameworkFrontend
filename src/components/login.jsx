@@ -5,7 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Messages } from 'primereact/messages';
 import { Divider } from 'primereact/divider';
-import { callBackend } from '../lib/usebackend.js';
+import { callBackend, clearCache } from '../lib/usebackend.js';
 
 import useUserStore from '../stores/user.js';
 
@@ -71,6 +71,7 @@ export default function LoginModal({ children }) {
           life: 3000,
         });
 
+        clearCache();
         console.log('Login successful!');
       } else {
         toast({
@@ -79,16 +80,7 @@ export default function LoginModal({ children }) {
           detail: `Login failed`,
           life: 3000,
         });
-        /*
-        msgs.current.getElement().hidden = false;
-        msgs.current.replace({
-          id: '1',
-          sticky: true,
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Authentication Failed',
-          closable: true,
-        });*/
+
         console.log('No token received');
       }
     } catch (error) {
@@ -98,18 +90,6 @@ export default function LoginModal({ children }) {
         detail: `Login failed`,
         life: 3000,
       });
-      /*
-      msgs.current.getElement().hidden = false;
-      msgs.current.replace({
-        id: '1',
-        sticky: true,
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Authentication Error',
-        closable: true,
-      });
-      */
-      //console.error('There was an error logging in', error);
     }
   };
 

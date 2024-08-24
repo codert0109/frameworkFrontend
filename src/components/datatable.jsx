@@ -7,7 +7,7 @@ import { Button } from 'primereact/button';
 
 import CreateRecordButton from './buttons/createrecord.jsx';
 
-import { useBackend, useBackendSuspense } from '../lib/usebackend.js';
+import { useBackend } from '../lib/usebackend.js';
 
 import fields from './fields';
 
@@ -80,7 +80,7 @@ export default function DataTableExtended({
 
   const [lazyState, setLazyState] = useState(defaultLazyState);
 
-  const [schema] = useBackendSuspense({
+  const [schema] = useBackend({
     packageName: db,
     className: table,
     methodName: 'schemaGet',

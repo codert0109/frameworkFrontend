@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
-import {
-  useBackend,
-  callBackend,
-  useBackendSuspense,
-} from '../lib/usebackend.js';
+import { useBackend, callBackend } from '../lib/usebackend.js';
 import useUserStore from '../stores/user.js';
 import Form from './form.jsx';
 import ActionButton from './buttons/actionbutton.jsx';
@@ -27,8 +23,9 @@ export default function Record({
   const toast = useUserStore((state) => state.toast);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const userId = useUserStore((state) => state.userId);
 
-  const [schema] = useBackendSuspense({
+  const [schema, schemaLoading] = useBackend({
     packageName: db,
     className: table,
     methodName: 'schemaGet',
@@ -37,7 +34,7 @@ export default function Record({
 
   const newRecord = !recordId;
 
-  const [buttons] = useBackendSuspense({
+  const [buttons, buttonsLoading] = useBackend({
     packageName: db,
     className: table,
     methodName: 'actionsGet',
@@ -48,7 +45,7 @@ export default function Record({
     skip: newRecord,
   });
 
-  const [record, recordLoading] = useBackendSuspense({
+  const [record, recordLoading] = useBackend({
     packageName: db,
     className: table,
     methodName: 'recordGet',
@@ -175,7 +172,7 @@ export default function Record({
   }, [schema, table, newRecord, where]);
 
   if (error) return <p>Error: {error}</p>;
-  if (loading || recordLoading) return <></>;
+  if (loading || recordLoading || schemaLoading || buttonsLoading) return <></>;
 
   return (
     <>

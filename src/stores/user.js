@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { jwtDecode } from 'jwt-decode';
 import { persist } from 'zustand/middleware';
+import { clearCache } from '../lib/usebackend';
 
 const useUserStore = create(
   persist(
@@ -42,12 +43,16 @@ const useUserStore = create(
             authenticated: !isExpired,
             userId: decodedToken.id,
           });
+          clearCache();
         } catch (error) {
           console.error('Failed to decode token', error);
           get().setDefault();
         }
       },
-      logout: () => get().setDefault(),
+      logout: () => {
+        clearCache();
+        get().setDefault();
+      },
       isAuthenticated: () => {
         const token = get().token;
         if (token) {
@@ -63,12 +68,12 @@ const useUserStore = create(
             return true;
           } catch (error) {
             console.error('Failed to decode token', error);
-            get().setDefault();
+            get().logout();
             return false;
           }
         }
         console.log('No token');
-        get().setDefault();
+        get().logout();
         return false;
       },
     }),

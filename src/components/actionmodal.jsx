@@ -106,7 +106,8 @@ export default function ActionModal({
         visible={showDialog}
         onHide={closeDialog}
         size="large"
-        style={{ width: '800px' }}
+        style={{ width: '1000px' }}
+        className=""
       >
         {button.verify && (
           <>
@@ -123,8 +124,11 @@ export default function ActionModal({
               handleChange={handleChange}
             >
               <div className="field grid" key="submitbutton">
-                <div className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"></div>
-                <div className="col-12 md:col-10">
+                <div
+                  className="col-fixed mb-2 md:mb-0 nowrap align-content-end formLabel"
+                  style={{ width: '200px' }}
+                ></div>
+                <div className="col">
                   <Button
                     label={button.label}
                     className="mr-1 mb-1"

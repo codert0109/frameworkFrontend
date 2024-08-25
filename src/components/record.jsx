@@ -185,8 +185,11 @@ export default function Record({
         newRecord={newRecord}
       >
         <div className="field grid" key="submitbutton">
-          <div className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"></div>
-          <div className="col-12 md:col-10">
+          <div
+            className="col-fixed mb-2 md:mb-0 nowrap align-content-end formLabel"
+            style={{ width: '200px' }}
+          ></div>
+          <div className="col">
             {newRecord && (
               <>
                 <Button

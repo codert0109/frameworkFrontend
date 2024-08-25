@@ -72,7 +72,8 @@ export default function Form({
           <div className="field grid" key={columnId}>
             <label
               htmlFor={columnId}
-              className="col-12 mb-2 md:col-2 md:mb-0 nowrap align-content-end formLabel"
+              className="col-fixed mb-2 md:mb-0 nowrap align-content-end formLabel"
+              style={{ width: '200px' }}
             >
               <div
                 data-pr-tooltip={
@@ -86,9 +87,7 @@ export default function Form({
                 {settings.required && <span className="text-danger"> *</span>}
               </div>
             </label>
-            <div className="col-12 md:col-10">
-              {renderInputField(columnId, settings)}
-            </div>
+            <div className="col">{renderInputField(columnId, settings)}</div>
           </div>
         ))}
         {children}

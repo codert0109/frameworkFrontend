@@ -17,6 +17,7 @@ export default function Record({
   where = [],
   reload,
   forceReload,
+  showHeader = false,
 }) {
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
@@ -176,7 +177,11 @@ export default function Record({
 
   return (
     <>
-      <h2>{(newRecord ? 'Create ' : 'Update ') + schema?.data?.name}</h2>
+      {showHeader ? (
+        <h2>{(newRecord ? 'Create ' : 'Update ') + schema?.data?.name}</h2>
+      ) : (
+        ''
+      )}
       <Form
         schema={filteredSchema}
         formData={formData}

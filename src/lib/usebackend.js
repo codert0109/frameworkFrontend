@@ -139,3 +139,5 @@ export function callBackend({
 
   return api.fetch(URL, args, auth, supressDialog);
 }
+
+export { api };

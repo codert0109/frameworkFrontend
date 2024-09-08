@@ -192,6 +192,122 @@ class API {
     console.log('Clearing cache', this);
     globalCache = {};
   }
+
+  /**
+   * Uploads multiple files to the specified URL
+   * @param {string} url - The URL to upload the files to
+   * @param {FormData} formData - The form data containing the files and additional information
+   * @param {boolean} auth - Whether to use authentication
+   * @param {boolean} suppressDialog - Whether to suppress error dialogs
+   * @returns {Promise<Object>} The server response
+   */
+  async uploadFiles(url, formData, auth = true, suppressDialog = false) {
+    if (auth) {
+      await this.waitForAuthentication();
+    }
+
+    const token = useUserStore.getState().token;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          useUserStore.getState().logout();
+          this.clearCache();
+          throw new Error('Authentication required');
+        }
+
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        );
+      }
+      const data = await response.json();
+
+      return {
+        ok: response.ok,
+        data: data.data,
+        messages: data.messages,
+      };
+    } catch (error) {
+      if (!suppressDialog) {
+        useUserStore.getState().setErrorMessage(error.message);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Initiates a file download from the specified URL using the bearer token for authentication
+   * @param {string} url - The URL to download the file from
+   * @param {string} filename - The suggested filename for the download (optional)
+   * @throws {Error} If the download fails or the user is not authenticated
+   */
+  async downloadFile(url, filename = null) {
+    await this.waitForAuthentication();
+    const token = useUserStore.getState().token;
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          useUserStore.getState().logout();
+          this.clearCache();
+          throw new Error('Authentication required');
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Get the filename from the Content-Disposition header if not provided
+      if (!filename) {
+        const contentDisposition = response.headers.get('Content-Disposition');
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+      }
+
+      // If filename is still not available, use a default name
+      filename = filename || 'download';
+
+      // Create a Blob from the response
+      const blob = await response.blob();
+
+      // Create a temporary URL for the Blob
+      const windowUrl = window.URL.createObjectURL(blob);
+
+      // Create a temporary anchor element to trigger the download
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = windowUrl;
+      a.download = filename;
+
+      // Append the anchor to the body, click it, and remove it
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(windowUrl);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      useUserStore.getState().setErrorMessage(error.message);
+      throw error;
+    }
+  }
 }
 
 export default API;

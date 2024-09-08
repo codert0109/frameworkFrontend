@@ -6,6 +6,8 @@ import * as text from './text';
 import * as boolean from './boolean';
 import * as datetime from './datetime';
 
+import * as file from './file';
+
 export default {
   reference,
   string,
@@ -14,4 +16,5 @@ export default {
   html: text,
   datetime,
   boolean,
+  file,
 };

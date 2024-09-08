@@ -8,6 +8,7 @@ import ActionButton from './buttons/actionbutton.jsx';
 import { formatDateTime, unFormatDateTime } from './util.js';
 import './record.css';
 
+
 export default function Record({
   db,
   table,
@@ -188,6 +189,7 @@ export default function Record({
         handleChange={handleChange}
         key={`${db}${table}${recordId}`}
         newRecord={newRecord}
+        recordId={recordId}
       >
         <div className="field grid" key="submitbutton">
           <div
@@ -216,6 +218,7 @@ export default function Record({
                 />
               </>
             )}
+
             {!newRecord &&
               buttons?.data &&
               Object.entries(buttons.data).map(([key, button]) => (
@@ -231,6 +234,7 @@ export default function Record({
                   columns={schema.data.schema}
                 />
               ))}
+            
           </div>
         </div>
       </Form>

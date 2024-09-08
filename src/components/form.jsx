@@ -29,6 +29,7 @@ export default function Form({
   handleChange,
   children,
   newRecord,
+  recordId,
 }) {
   const renderInputField = (columnId, settings) => {
     let Field = Fields.string.edit;
@@ -60,6 +61,8 @@ export default function Form({
         value={value}
         valueFriendly={valueFriendly}
         handleChange={handleChange}
+        recordId={recordId}
+        formData={formData}
       />
     );
   };

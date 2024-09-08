@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from 'primereact/button';
 import ActionModal from '../actionmodal.jsx';
 import { Tooltip } from 'primereact/tooltip';
+import AttachButton from './attachbutton.jsx';
 
 export default function ActionButton({
   button,
@@ -25,6 +26,12 @@ export default function ActionButton({
 
   if (button.newLine) {
     return <br />;
+  }
+
+  if (button.type == 'attach') {
+    return (
+      <AttachButton db={db} table={table} recordId={recordId} className="" />
+    );
   }
 
   return (

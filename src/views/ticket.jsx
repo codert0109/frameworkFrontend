@@ -8,7 +8,10 @@ import { Badge } from 'primereact/badge';
 
 const api = new API();
 
+////////////////////////////////////
 // this is not used at this time. views need to be re-impmented.
+////////////////////////////////////
+
 export default function Root() {
   const { db, table } = useParams();
   const [nodes, setNodes] = useState([]);

@@ -4,7 +4,8 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Messages } from 'primereact/messages';
-import { Divider } from 'primereact/divider';
+// import { Divider } from 'primereact/divider';
+import { Divider } from '../components/divider';
 import { callBackend, clearCache } from '../lib/usebackend.js';
 
 import useUserStore from '../stores/user.js';
@@ -127,7 +128,7 @@ export default function LoginModal({ children }) {
                       htmlFor="password"
                       className="col-12 mb-2 md:col-3 md:mb-0 formLabel"
                     >
-                      Password
+                      Pass
                     </label>
                     <div className="col-12 md:col-9">
                       <InputText

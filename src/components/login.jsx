@@ -4,8 +4,8 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Messages } from 'primereact/messages';
-// import { Divider } from 'primereact/divider';
-import { Divider } from '../components/divider';
+import { Divider } from 'primereact/divider';
+// import { Divider } from '../components/divider.jsx';
 import { callBackend, clearCache } from '../lib/usebackend.js';
 
 import useUserStore from '../stores/user.js';

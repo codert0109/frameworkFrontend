@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import API from './api.js';
-import { isEqual } from 'lodash';
+import _ from 'lodash';
 import useUserStore from '../stores/user.js';
 
 const api = new API();
@@ -104,7 +104,7 @@ export function useBackend({
   if (skip) return [returnValue, loading, error];
 
   // This prevents duplicate calls when just a reference changes.
-  if (!isEqual(newArgs, args)) {
+  if (!_.isEqual(newArgs, args)) {
     if (queueing && fetching.current) {
       console.log('Queuing request', args);
       queuedRequest.current = args;
